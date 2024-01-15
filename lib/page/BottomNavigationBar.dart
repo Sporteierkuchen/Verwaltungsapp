@@ -131,7 +131,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
   Widget build(BuildContext context) {
     //  if (loadedData && custDTO!=null && custDTO?.email != null && custDTO?.password != null) {
     if (loadedData && userDTO != null) {
-      print("App wird gestartet...");
       return Scaffold(
         body: _screens.elementAt(_currentIndex),
         bottomNavigationBar: SizedBox(
@@ -149,9 +148,15 @@ class _BottomNavBarState extends State<BottomNavBar> {
             unselectedItemColor: Color(0xFFCAB69E),
             //iconSize: 10,
             onTap: (value) {
-              setState(() {
-                _currentIndex = value;
-              });
+
+              if(_currentIndex != value){
+
+                setState(() {
+                  _currentIndex = value;
+                });
+
+              }
+
             },
           ),
         ),

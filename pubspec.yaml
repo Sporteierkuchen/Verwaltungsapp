@@ -47,6 +47,7 @@ dependencies:
   flutter_logs: ^2.1.11
   json_serializable: ^6.6.1
   image_picker: ^1.0.4
+  flutter_slidable: ^3.0.1
 
 dev_dependencies:
   flutter_test:
