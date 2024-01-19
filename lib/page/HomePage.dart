@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../dto/UserDto.dart';
 import '../util/PersistenceUtil.dart';
@@ -426,7 +427,7 @@ class HomePageState extends State<HomePage> {
                         });
 
                       },
-                      label: Text("Speichern"),
+                      label: Text("Hinzufügen"),
                       icon: Icon(Icons.save),
                     ),
 
@@ -656,103 +657,143 @@ class HomePageState extends State<HomePage> {
                 ))
                 :
 
-            ListView.builder(
-              //  shrinkWrap: true,
-              // physics: const ScrollPhysics(),
-                itemCount: articleListSearch.length,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      print(
-                          "Ausgewählter Artikel: ${articleListSearch[index].name}");
+            SlidableAutoCloseBehavior(
+              closeWhenOpened: true,
+              child: ListView.builder(
+                //  shrinkWrap: true,
+                // physics: const ScrollPhysics(),
+                  itemCount: articleListSearch.length,
+                  itemBuilder: (context, index) {
+                    return
+                      Slidable(
 
-                      selectedIndex = articleList.indexOf(articleListSearch[index]);
-
-                      nameTextController.text =articleList[selectedIndex!].name ;
-                      nummerTextController.text = articleList[selectedIndex!].article_number;
-                      beschreibungTextController.text = articleList[selectedIndex!].description;
-                      preisTextController.text =roundDouble(articleList[selectedIndex!].price, 2).toString();
-                      steuersatzTextController.text = articleList[selectedIndex!].steuersatz.toString();
-                      scan_codeTextController.text = articleList[selectedIndex!].scan_code;
-
-                      setState(() {
-                        editarticleView = true;
-                      });
-
-                    },
-
-                    child:
-
-                    Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        margin: const EdgeInsets.all(5),
-                        elevation: 3,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
+                        endActionPane: ActionPane(
+                          extentRatio: 1,
+                          motion: const DrawerMotion(),
                           children: [
-                            const Padding(
-                              padding:
-                              EdgeInsets.only(left: 10, right: 15, top: 20, bottom: 20),
-                              child: Icon(color: Colors.grey, size: 40, Icons.article_outlined),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
 
-                                    Text(
-                                      articleListSearch[index].name,
+                            SlidableAction(
+                              autoClose: true,
+
+                           borderRadius: BorderRadius.circular(10.0),
+                              padding: EdgeInsets.all(5),
+                              onPressed: (value) {
+
+                                articleList.removeAt(articleList.indexOf(articleListSearch[index]));
+
+                                articleListSearch.clear();
+                                for (_Article a in articleList) {
+                                  if (a.name.toLowerCase().contains(fieldText.text.toLowerCase().trim())) {
+                                    articleListSearch.add(a);
+                                  }
+                                }
+
+                                 setState(() {});
+                              },
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.black,
+                              icon: Icons.delete,
+                              label: 'Löschen',
+                            ),
+
+                          ],
+                        ),
+
+
+                        child: GestureDetector(
+                        onTap: () {
+                          print(
+                              "Ausgewählter Artikel: ${articleListSearch[index].name}");
+
+                          selectedIndex = articleList.indexOf(articleListSearch[index]);
+
+                          nameTextController.text =articleList[selectedIndex!].name ;
+                          nummerTextController.text = articleList[selectedIndex!].article_number;
+                          beschreibungTextController.text = articleList[selectedIndex!].description;
+                          preisTextController.text =roundDouble(articleList[selectedIndex!].price, 2).toString();
+                          steuersatzTextController.text = articleList[selectedIndex!].steuersatz.toString();
+                          scan_codeTextController.text = articleList[selectedIndex!].scan_code;
+
+                          setState(() {
+                            editarticleView = true;
+                          });
+
+                        },
+
+                        child:
+
+                        Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                             margin: const EdgeInsets.all(5),
+                            elevation: 3,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                const Padding(
+                                  padding:
+                                  EdgeInsets.only(left: 10, right: 15, top: 20, bottom: 20),
+                                  child: Icon(color: Colors.grey, size: 40, Icons.article_outlined),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+
+                                        Text(
+                                          articleListSearch[index].name,
+                                          style: TextStyle(
+                                            height: 0,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 5,
+                                        ),
+                                        Text(
+                                          "Artikelnummer: "+articleListSearch[index].article_number,
+                                          style: TextStyle(
+                                            height: 0,
+                                            color: Colors.grey,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Card(
+                                  color: Color(0xFF7B1A33),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  margin: EdgeInsets.only(left: 15, right: 8, top: 20, bottom: 20),
+                                  elevation: 3,
+                                  child: Padding(
+                                    padding:
+                                    EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10),
+                                    child: Text(roundDouble(articleListSearch[index].price, 2).toString()+"€",
                                       style: TextStyle(
                                         height: 0,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                      "Artikelnummer: "+articleListSearch[index].article_number,
-                                      style: TextStyle(
-                                        height: 0,
-                                        color: Colors.grey,
+                                        color: Colors.white,
                                         fontSize: 15,
                                       ),
                                     ),
-
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Card(
-                              color: Color(0xFF7B1A33),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              margin: EdgeInsets.only(left: 15, right: 8, top: 20, bottom: 20),
-                              elevation: 3,
-                              child: Padding(
-                                padding:
-                                EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10),
-                                child: Text(roundDouble(articleListSearch[index].price, 2).toString()+"€",
-                                  style: TextStyle(
-                                    height: 0,
-                                    color: Colors.white,
-                                    fontSize: 15,
                                   ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        )),
-                  );
-                }),
+                              ],
+                            )),
+                    ),
+                      );
+                  }),
+            ),
 
 
             ),
