@@ -4,6 +4,9 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:syncfusion_flutter_core/theme.dart';
 
 import '../dto/UserDto.dart';
 import '../util/PersistenceUtil.dart';
@@ -36,7 +39,7 @@ class HomePageState extends State<HomePage> {
   final nummerTextController = TextEditingController();
   final beschreibungTextController = TextEditingController();
   final preisTextController = TextEditingController();
-  final steuersatzTextController = TextEditingController();
+  String steuersatz="";
   final scan_codeTextController = TextEditingController();
 
   bool loadedData = false;
@@ -62,7 +65,10 @@ class HomePageState extends State<HomePage> {
 
 //      articleListSearch = articleList;
 
-          loadedData = true;
+
+
+
+      loadedData = true;
         }));
   }
 
@@ -197,7 +203,7 @@ class HomePageState extends State<HomePage> {
                         articleList[selectedIndex!].article_number=nummerTextController.text;
                         articleList[selectedIndex!].description=beschreibungTextController.text;
                         articleList[selectedIndex!].price=double.parse(preisTextController.text);
-                        articleList[selectedIndex!].steuersatz=double.parse(steuersatzTextController.text);
+                        articleList[selectedIndex!].steuersatz=int.parse(steuersatz.replaceAll("%", ""));
                         articleList[selectedIndex!].scan_code=scan_codeTextController.text;
 
                         articleListSearch.clear();
@@ -211,7 +217,7 @@ class HomePageState extends State<HomePage> {
                         nummerTextController.text="";
                         beschreibungTextController.text="";
                         preisTextController.text="";
-                        steuersatzTextController.text="";
+                        steuersatz="";
                         scan_codeTextController.text="";
 
                         setState(() {
@@ -288,7 +294,7 @@ class HomePageState extends State<HomePage> {
                         nummerTextController.text="";
                         beschreibungTextController.text="";
                         preisTextController.text="";
-                        steuersatzTextController.text="";
+                        steuersatz="";
                         scan_codeTextController.text="";
 
                         setState(() {
@@ -405,7 +411,7 @@ class HomePageState extends State<HomePage> {
                       ),
                       onPressed: () async {
 
-                        articleList.add(_Article(name: nameTextController.text, article_number: nummerTextController.text, description: beschreibungTextController.text, price: double.parse(preisTextController.text), steuersatz: double.parse(steuersatzTextController.text), scan_code: scan_codeTextController.text));
+                        articleList.add(_Article(name: nameTextController.text, article_number: nummerTextController.text, description: beschreibungTextController.text, price: double.parse(preisTextController.text), steuersatz: int.parse(steuersatz.replaceAll("%", "")) , scan_code: scan_codeTextController.text));
 
                         articleListSearch.clear();
                         for (_Article a in articleList) {
@@ -418,7 +424,7 @@ class HomePageState extends State<HomePage> {
                         nummerTextController.text="";
                         beschreibungTextController.text="";
                         preisTextController.text="";
-                        steuersatzTextController.text="";
+                        steuersatz="";
                         scan_codeTextController.text="";
 
                         setState(() {
@@ -493,7 +499,7 @@ class HomePageState extends State<HomePage> {
                         nummerTextController.text="";
                         beschreibungTextController.text="";
                         preisTextController.text="";
-                        steuersatzTextController.text="";
+                        steuersatz="";
                         scan_codeTextController.text="";
 
                         setState(() {
@@ -624,6 +630,8 @@ class HomePageState extends State<HomePage> {
                       onTap: () {
                         print("Artikel hinzufügen!");
 
+                        steuersatz="19%";
+
                         setState(() {
                           addarticleView =true;
                         });
@@ -711,7 +719,7 @@ class HomePageState extends State<HomePage> {
                           nummerTextController.text = articleList[selectedIndex!].article_number;
                           beschreibungTextController.text = articleList[selectedIndex!].description;
                           preisTextController.text =roundDouble(articleList[selectedIndex!].price, 2).toString();
-                          steuersatzTextController.text = articleList[selectedIndex!].steuersatz.toString();
+                          steuersatz = articleList[selectedIndex!].steuersatz.toString()+"%";
                           scan_codeTextController.text = articleList[selectedIndex!].scan_code;
 
                           setState(() {
@@ -1231,53 +1239,63 @@ return
               .size
               .width *
               0.6,
-          height: 30,
-          child: TextField(
-            controller:
-            steuersatzTextController,
-            style: TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
-                fontWeight:
-                FontWeight.normal),
-            textAlignVertical:
-            TextAlignVertical
-                .center,
-            maxLength: 25,
-            decoration: InputDecoration(
-              contentPadding:
-              const EdgeInsets
-                  .only(),
-              filled: true,
-              fillColor:
-              Colors.grey[100],
-              counterText: "",
-              focusedBorder:
-              const OutlineInputBorder(
-                borderRadius:
-                BorderRadius.all(
-                    Radius.circular(
-                        0.0)),
-                borderSide: BorderSide(
-                    color: Colors
-                        .transparent,
-                    width: 0.0),
+          //height: 30,
+          child:
+
+          DecoratedBox(
+              decoration: BoxDecoration(
+                  color: Colors.grey[100], //background color of dropdown button
+                  //border: Border.all(color: Colors.black38, width:3), //border of dropdown button
+                 // borderRadius: BorderRadius.circular(50), //border raiuds of dropdown button
+
               ),
-              enabledBorder:
-              const OutlineInputBorder(
-                borderRadius:
-                BorderRadius.all(
-                    Radius.circular(
-                        0.0)),
-                borderSide: BorderSide(
-                    color: Colors
-                        .transparent,
-                    width: 0.0),
-              ),
-              hintText: "Steuersatz" +
-                  "...",
-            ),
-          ),
+
+              child:
+
+              Padding(
+                  padding: EdgeInsets.only(left:5, right:5),
+                  child:DropdownButton(
+                    value: steuersatz,
+                   // value: addarticleView ? "19%" : articleList.elementAt(selectedIndex!).steuersatz.toString()+"%",
+                    items: [ //add items in the dropdown
+                      DropdownMenuItem(
+                        child: Text("19%"),
+                        value: "19%",
+                      ),
+                      DropdownMenuItem(
+                          child: Text("20%"),
+                          value: "20%"
+                      ),
+                      DropdownMenuItem(
+                        child: Text("21%"),
+                        value: "21%",
+                      )
+
+                    ],
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          steuersatz = newValue!;
+                        });
+                      },
+                    icon: Padding( //Icon at tail, arrow bottom is default icon
+                        padding: EdgeInsets.only(left:20),
+                        child:Icon(Icons.arrow_circle_down_sharp)
+                    ),
+                    iconEnabledColor: Colors.black, //Icon color
+                    style:  TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                        fontWeight:
+                        FontWeight.normal),
+
+                    dropdownColor: Colors.white, //dropdown background color
+                    underline: Container(), //remove underline
+                    isExpanded: true, //make true to make width 100%
+                  )
+              )
+          )
+
+
         ),
       ],
     ),
@@ -1454,7 +1472,7 @@ class _Article {
    String article_number;
    String description;
    double price;
-   double steuersatz;
+   int steuersatz;
    String scan_code;
 
   @override
