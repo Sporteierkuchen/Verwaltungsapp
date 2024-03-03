@@ -13,6 +13,9 @@ ArticleDTO _$ArticleDTOFromJson(Map<String, dynamic> json) => ArticleDTO(
       sollmenge: json['sollmenge'] as int,
       istmenge: json['istmenge'] as int?,
       warnzeit: json['warnzeit'] as int,
+      mengenListe: (json['mengenListe'] as List<dynamic>?)
+          ?.map((e) => MengeDTO.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$ArticleDTOToJson(ArticleDTO instance) {
@@ -30,5 +33,6 @@ Map<String, dynamic> _$ArticleDTOToJson(ArticleDTO instance) {
   val['sollmenge'] = instance.sollmenge;
   writeNotNull('istmenge', instance.istmenge);
   val['warnzeit'] = instance.warnzeit;
+  val['mengenListe'] = instance.mengenListe;
   return val;
 }

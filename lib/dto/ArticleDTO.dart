@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:verwaltungsapp/dto/MengeDTO.dart';
 
 part 'ArticleDTO.g.dart';
 
@@ -18,6 +19,7 @@ class ArticleDTO {
 
   int warnzeit;
 
+  List<MengeDTO>? mengenListe = [];
 
   ArticleDTO({
 
@@ -26,7 +28,8 @@ class ArticleDTO {
     required this.name,
     required this.sollmenge,
     this.istmenge,
-    required this.warnzeit
+    required this.warnzeit,
+    this.mengenListe
 
   });
 

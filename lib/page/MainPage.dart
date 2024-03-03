@@ -12,6 +12,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:verwaltungsapp/dto/ArticleDTO.dart';
+import '../dto/MengeDTO.dart';
 import '../util/LiveApiRequest.dart';
 
 class MainPage extends StatefulWidget {
@@ -41,6 +42,7 @@ class _MainPageState extends State<MainPage> {
   final warnzeitTextController = TextEditingController();
 
   bool loadedData = false;
+  bool loadedDataSuccessful = false;
 
   String errorMessage= "";
 
@@ -67,7 +69,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
 
-    if (loadedData) {
+    if (loadedData && loadedDataSuccessful) {
 
       return
 
@@ -85,7 +87,121 @@ class _MainPageState extends State<MainPage> {
 
                 )));
 
-    } else {
+    }
+    else if (loadedDataSuccessful == false && loadedData){
+
+      return
+      Scaffold(
+
+        //resizeToAvoidBottomInset: false ,
+          body: SafeArea(
+              child:
+          Container(
+            color: Colors.transparent,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+
+                const SizedBox(height: 20,),
+
+              const Padding(
+                padding: EdgeInsets.all(10.0),
+                child: Text("Daten konnten nicht geladen werden!",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    height: 0,
+                    color: Colors.black,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+
+              ElevatedButton.icon(
+                style: ButtonStyle(
+                  backgroundColor:
+                  MaterialStateProperty
+                      .all<Color>(
+                      Colors.grey),
+                  foregroundColor:
+                  MaterialStateProperty
+                      .all<Color>(
+                      Colors.black),
+                  overlayColor:
+                  MaterialStateProperty
+                      .resolveWith<Color>(
+                        (Set<MaterialState>
+                    states) {
+                      if (states.contains(
+                          MaterialState
+                              .pressed)) {
+                        return Colors
+                            .greenAccent; // Change this to desired press color
+                      }
+                      return Colors
+                          .greenAccent; // Change this to desired press color
+                    },
+                  ),
+                  shape: MaterialStateProperty
+                      .all<
+                      RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius:
+                      BorderRadius
+                          .circular(8),
+                      side: const BorderSide(
+                          color: Color(
+                              0xFF222222)), // Border color and width
+                    ),
+                  ),
+                  padding:
+                  MaterialStateProperty
+                      .all<EdgeInsets>(
+                      const EdgeInsets.all(
+                          10)),
+                  textStyle:
+                  MaterialStateProperty
+                      .all<TextStyle>(
+                    const TextStyle(
+                      fontSize: 18,
+                      fontWeight:
+                      FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  // Flutter doesn't support transitions for state changes; you'd use animations for that.
+                ),
+                onPressed: () async {
+
+                  if(loadedData){
+
+                    loadedData = false;
+
+                    print("Neuladen!");
+                    await loadData();
+                    refresh();
+
+                    setState(() {
+                      loadedData = true;
+                    });
+
+
+                    }
+
+                  },
+
+                label: const Text("Erneut versuchen"),
+                icon: const Icon(Icons.refresh),
+              ),
+
+
+            ],),
+          ),
+          )
+      );
+
+    }
+    else {
       return SafeArea(
         child: Container(
           color: Colors.white,
@@ -845,6 +961,7 @@ class _MainPageState extends State<MainPage> {
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
                               margin: const EdgeInsets.all(5),
+                              color:  articleListSearch[index].istmenge! < articleListSearch[index].sollmenge ? Colors.yellow[300] : Colors.white,
                               elevation: 3,
                               child:
 
@@ -893,37 +1010,38 @@ class _MainPageState extends State<MainPage> {
                                                 height: 0,
                                                 fontWeight: FontWeight.bold,
                                                 color: Colors.black,
-                                                fontSize: 18,
+                                                fontSize: 22,
                                               ),
                                             ),
                                             const SizedBox(
                                               height: 8,
                                             ),
 
-                                            Row(children: [
-
                                               Text(
-                                                "Soll: ${articleListSearch[index].sollmenge}",
+                                                "Soll: ${articleListSearch[index].sollmenge}     Ist: ${articleListSearch[index].istmenge ?? 0}",
                                                 style: const TextStyle(
                                                   height: 0,
                                                   color: Colors.grey,
-                                                  fontSize: 15,
+                                                  fontSize: 16,
                                                 ),
                                               ),
 
-                                              const SizedBox(
-                                                width: 10,
-                                              ),
-                                              Text(
-                                                "Ist: ${articleListSearch[index].istmenge ?? 0}",
+
+                                            articleListSearch[index].istmenge! < articleListSearch[index].sollmenge ?
+
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 8),
+                                              child: Text("Nachzukaufen: ${articleListSearch[index].sollmenge - articleListSearch[index].istmenge!}",
                                                 style: const TextStyle(
                                                   height: 0,
-                                                  color: Colors.grey,
-                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                  fontSize: 18,
                                                 ),
                                               ),
-
-                                            ],),
+                                            )
+                                            :
+                                            Container(),
 
                                           ],
                                         ),
@@ -931,26 +1049,46 @@ class _MainPageState extends State<MainPage> {
 
                                     ),
 
+                               Padding(
+                                 padding: const EdgeInsets.symmetric(horizontal: 5),
+                                 child: Column(children: [
 
-                                    Card(
-                                      color: Color(0xFF7B1A33),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10.0),
-                                      ),
-                                      margin: EdgeInsets.only(left: 15, right: 8, top: 20, bottom: 20),
-                                      elevation: 3,
-                                      child: const Padding(
-                                        padding:
-                                        EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10),
-                                        child: Text("€",
-                                          style: TextStyle(
-                                            height: 0,
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                                   articleListSearch[index].mengenListe!.isEmpty ?
+                                   const Icon(
+                                     Icons.star,
+                                     color: Colors.black,
+                                     size: 40,
+                                   )
+                                       : Container(),
+
+
+                                   articleListSearch[index].mengenListe!.isNotEmpty && isOKMenge(articleListSearch[index]) ?
+                                   const Icon(
+                                     Icons.check,
+                                     color: Colors.green,
+                                     size: 40,
+                                   )
+                                       : Container(),
+
+                                   articleListSearch[index].mengenListe!.isNotEmpty && isWarningMenge(articleListSearch[index]) ?
+                                   const Icon(
+                                     Icons.warning,
+                                     color: Colors.orange,
+                                     size: 40,
+                                   )
+                                       : Container(),
+
+                                   articleListSearch[index].mengenListe!.isNotEmpty && isAbgelaufenMenge(articleListSearch[index]) ?
+                                   const Icon(
+                                     Icons.error,
+                                     color: Colors.red,
+                                     size: 40,
+                                   )
+                                       : Container(),
+
+                                 ]),
+                               ),
+
                                   ],
                                 ),
                               )),
@@ -1320,7 +1458,13 @@ class _MainPageState extends State<MainPage> {
     articleListSearch.clear();
     for (ArticleDTO a in articleList2) {
       if (a.name.toLowerCase().contains(fieldText.text.toLowerCase().trim())) {
-        articleListSearch.add(ArticleDTO(artikel_id: a.artikel_id, logo: a.logo, name: a.name, sollmenge: a.sollmenge, istmenge: a.istmenge, warnzeit: a.warnzeit));
+
+        List<MengeDTO> mengenList = [];
+        for (MengeDTO menge in a.mengenListe!) {
+            mengenList.add(MengeDTO(mengen_id: menge.mengen_id, artikel_id: menge.artikel_id, datum: menge.datum, menge: menge.menge));
+        }
+        articleListSearch.add(ArticleDTO(artikel_id: a.artikel_id, logo: a.logo, name: a.name, sollmenge: a.sollmenge, istmenge: a.istmenge, warnzeit: a.warnzeit, mengenListe: mengenList));
+
       }
     }
 
@@ -1339,7 +1483,11 @@ class _MainPageState extends State<MainPage> {
         if (a.name.toLowerCase().contains(value.toLowerCase().trim())) {
           print("Beschreibung ${a.name}");
 
-          articleListSearch.add(ArticleDTO(artikel_id: a.artikel_id, logo: a.logo, name: a.name, sollmenge: a.sollmenge, istmenge: a.istmenge, warnzeit: a.warnzeit));
+          List<MengeDTO> mengenList = [];
+          for (MengeDTO menge in a.mengenListe!) {
+            mengenList.add(MengeDTO(mengen_id: menge.mengen_id, artikel_id: menge.artikel_id, datum: menge.datum, menge: menge.menge));
+          }
+          articleListSearch.add(ArticleDTO(artikel_id: a.artikel_id, logo: a.logo, name: a.name, sollmenge: a.sollmenge, istmenge: a.istmenge, warnzeit: a.warnzeit, mengenListe: mengenList));
         }
       }
 
@@ -1369,9 +1517,23 @@ class _MainPageState extends State<MainPage> {
 
   Future<void> loadData() async {
 
+    articleList2.clear();
 
     await loadArticles();
 
+    if(loadedDataSuccessful){
+
+      for (ArticleDTO a in articleList2) {
+
+        int ist=0;
+        for (MengeDTO menge in a.mengenListe!) {
+            ist+= menge.menge;
+        }
+        a.istmenge=ist;
+
+      }
+
+    }
 
   }
 
@@ -1389,9 +1551,43 @@ class _MainPageState extends State<MainPage> {
         articleList2.add(element);
       });
 
+      loadedDataSuccessful = true;
+      for (int i = 0; i < articleList2.length; i++) {
+
+        if(loadedDataSuccessful){
+          await loadMengen(i);
+        }
+      }
+
 
     } else if (apiResponse.status == Status.EXCEPTION) {
+      loadedDataSuccessful = false;
     } else if (apiResponse.status == Status.ERROR) {
+      loadedDataSuccessful = false;
+    }
+
+  }
+
+  loadMengen(int index) async{
+
+    LiveApiRequest<MengeDTO> liveApiRequest =
+    LiveApiRequest<MengeDTO>(url: "https://artikelapp.000webhostapp.com/getMengen.php");
+    ApiResponse apiResponse = await liveApiRequest.executePost({"articleID": articleList2[index].artikel_id.toString()});
+    if (apiResponse.status == Status.SUCCESS) {
+
+      List<MengeDTO> mengenList = [];
+      List<MengeDTO>.from(jsonDecode(apiResponse.body!)
+          .map((model) => MengeDTO.fromJson(model))).forEach((element) {
+        mengenList.add(element);
+      });
+      articleList2[index].mengenListe = mengenList;
+
+      loadedDataSuccessful = true;
+
+    } else if (apiResponse.status == Status.EXCEPTION) {
+      loadedDataSuccessful = false;
+    } else if (apiResponse.status == Status.ERROR) {
+      loadedDataSuccessful = false;
     }
 
   }
@@ -1416,7 +1612,7 @@ class _MainPageState extends State<MainPage> {
 
         int article_id = int.parse(apiResponse.body!);
 
-        articleList2.add(ArticleDTO(artikel_id: article_id, logo: image, name: nameTextController.text.trim(), sollmenge: int.parse(sollmengeTextController.text.trim()), warnzeit: int.parse(warnzeitTextController.text.trim())));
+        articleList2.add(ArticleDTO(artikel_id: article_id, logo: image, name: nameTextController.text.trim(), sollmenge: int.parse(sollmengeTextController.text.trim()), istmenge: 0, warnzeit: int.parse(warnzeitTextController.text.trim()),mengenListe: []));
 
         refresh();
 
@@ -1915,6 +2111,74 @@ class _MainPageState extends State<MainPage> {
 
   }
 
+   bool isOKMenge(ArticleDTO article) {
+
+    for (MengeDTO m in article.mengenListe!) {
+
+      DateTime now  =DateTime.now();
+      DateTime datum = DateTime.parse(m.datum);
+
+      DateTime nowFormated = DateTime(now.year, now.month, now.day);
+      DateTime datumFormated = DateTime(datum.year, datum.month, datum.day);
+
+      int difference = (datumFormated.difference(nowFormated).inHours / 24).round();
+     // print("Difference: $difference Warnzeit: ${article.warnzeit}");
+
+     if(article.warnzeit<= difference){
+       return true;
+     }
+
+    }
+
+      return false;
+
+  }
+
+  bool isWarningMenge(ArticleDTO article) {
+
+    for (MengeDTO m in article.mengenListe!) {
+
+      DateTime now  =DateTime.now();
+      DateTime datum = DateTime.parse(m.datum);
+
+      DateTime nowFormated = DateTime(now.year, now.month, now.day);
+      DateTime datumFormated = DateTime(datum.year, datum.month, datum.day);
+
+      int difference = (datumFormated.difference(nowFormated).inHours / 24).round();
+     // print("Difference: $difference Warnzeit: ${article.warnzeit}");
+
+      if(difference>=0 && article.warnzeit>= difference){
+        return true;
+      }
+
+    }
+
+    return false;
+
+  }
+
+  bool isAbgelaufenMenge(ArticleDTO article) {
+
+    for (MengeDTO m in article.mengenListe!) {
+
+      DateTime now  =DateTime.now();
+      DateTime datum = DateTime.parse(m.datum);
+
+      DateTime nowFormated = DateTime(now.year, now.month, now.day);
+      DateTime datumFormated = DateTime(datum.year, datum.month, datum.day);
+
+      int difference = (datumFormated.difference(nowFormated).inHours / 24).round();
+     // print("Difference: $difference Warnzeit: ${article.warnzeit}");
+
+      if(difference<0){
+        return true;
+      }
+
+    }
+
+    return false;
+
+  }
 
 }
 
