@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,8 +23,6 @@ class MainPage extends StatefulWidget {
 
 
 class _MainPageState extends State<MainPage> {
-
-  //List<_Article> articleList = <_Article>[];
 
   List<ArticleDTO> articleList2 = [];
   List<ArticleDTO> articleListSearch= <ArticleDTO>[];
@@ -52,9 +51,7 @@ class _MainPageState extends State<MainPage> {
 
     loadData().whenComplete(() => setState(() {
 
-      for (ArticleDTO a in articleList2) {
-        articleListSearch.add(a);
-      }
+      refresh();
 
       loadedData = true;
     }));
@@ -183,7 +180,7 @@ class _MainPageState extends State<MainPage> {
                             borderRadius:
                             BorderRadius
                                 .circular(8),
-                            side: BorderSide(
+                            side: const BorderSide(
                                 color: Color(
                                     0xFF222222)), // Border color and width
                           ),
@@ -191,12 +188,12 @@ class _MainPageState extends State<MainPage> {
                         padding:
                         MaterialStateProperty
                             .all<EdgeInsets>(
-                            EdgeInsets.all(
+                            const EdgeInsets.all(
                                 5)),
                         textStyle:
                         MaterialStateProperty
                             .all<TextStyle>(
-                          TextStyle(
+                          const TextStyle(
                             fontSize: 16,
                             fontWeight:
                             FontWeight.bold,
@@ -207,40 +204,58 @@ class _MainPageState extends State<MainPage> {
                       ),
                       onPressed: () async {
 
-                        // articleList[selectedIndex!].name =nameTextController.text;
-                        // articleList[selectedIndex!].article_number=nummerTextController.text;
-                        // articleList[selectedIndex!].description=beschreibungTextController.text;
-                        // articleList[selectedIndex!].price=double.parse(preisTextController.text);
-                        // articleList[selectedIndex!].steuersatz=int.parse(steuersatz.replaceAll("%", ""));
-                        // articleList[selectedIndex!].scan_code=scan_codeTextController.text;
-                        //
-                        // articleListSearch.clear();
-                        // for (_Article a in articleList) {
-                        //   if (a.name.toLowerCase().contains(fieldText.text.toLowerCase().trim())) {
-                        //     articleListSearch.add(a);
-                        //   }
-                        // }
-                        //
-                        // nameTextController.text="";
-                        // nummerTextController.text="";
-                        // beschreibungTextController.text="";
-                        // preisTextController.text="";
-                        // steuersatz="";
-                        // scan_codeTextController.text="";
-                        //
-                        // setState(() {
-                        //   editarticleView = false;
-                        //   srollcontroller.jumpTo(0);
-                        //   selectedIndex = null;
-                        //
-                        // });
+                        if(loadedData){
+
+                          loadedData = false;
+
+                          if(checkUserInputArticle()){
+                            await updateArticle(articleList2[selectedIndex!].artikel_id!);
+                          }
+                          else{
+                            print("Fehler Eingabe!");
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              duration: const Duration(seconds: 3),
+                              content:
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.max,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+                                    child: Icon(color: Colors.orangeAccent, size: 40, Icons.warning_outlined),
+                                  ),
+                                  Expanded(
+                                    child:
+
+                                    Padding(
+                                      padding: const EdgeInsets.all(5.0),
+                                      child: Text(errorMessage,
+                                        softWrap: true,
+                                        style: const TextStyle(
+                                          height: 0,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.orangeAccent,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                            ));
+                            loadedData = true;
+                          }
+
+                        }
 
                       },
-                      label: Text("Speichern"),
-                      icon: Icon(Icons.save),
+                      label: const Text("Speichern"),
+                      icon: const Icon(Icons.save),
                     ),
 
-                    SizedBox(width: 50,),
+                    const SizedBox(width: 50,),
 
                     ElevatedButton.icon(
                       style: ButtonStyle(
@@ -274,7 +289,7 @@ class _MainPageState extends State<MainPage> {
                             borderRadius:
                             BorderRadius
                                 .circular(8),
-                            side: BorderSide(
+                            side: const BorderSide(
                                 color: Color(
                                     0xFF222222)), // Border color and width
                           ),
@@ -282,12 +297,12 @@ class _MainPageState extends State<MainPage> {
                         padding:
                         MaterialStateProperty
                             .all<EdgeInsets>(
-                            EdgeInsets.all(
+                            const EdgeInsets.all(
                                 5)),
                         textStyle:
                         MaterialStateProperty
                             .all<TextStyle>(
-                          TextStyle(
+                          const TextStyle(
                             fontSize: 16,
                             fontWeight:
                             FontWeight.bold,
@@ -298,19 +313,26 @@ class _MainPageState extends State<MainPage> {
                       ),
                       onPressed: () {
 
-                        nameTextController.text="";
-                        sollmengeTextController.text="";
-                        warnzeitTextController.text="";
+                        if(loadedData){
 
-                        setState(() {
-                          editarticleView = false;
-                          srollcontroller.jumpTo(0);
-                          selectedIndex = null;
-                        });
+                          print("Abbrechen!");
+
+                          image="";
+                          nameTextController.text="";
+                          sollmengeTextController.text="";
+                          warnzeitTextController.text="";
+
+                          setState(() {
+                            editarticleView = false;
+                            srollcontroller.jumpTo(0);
+                            selectedIndex = null;
+                          });
+
+                        }
 
                       },
                       label: Text("Abbrechen"),
-                      icon: Icon(
+                      icon: const Icon(
                           Icons.cancel_outlined),
                     ),
                   ],
@@ -637,16 +659,13 @@ class _MainPageState extends State<MainPage> {
                             if(loadedData){
 
                               print("Suchfeld gecleart!");
-                              //await _getCurrentPosition();
+
+                              fieldText.clear();
 
                               if(articleList2.length != articleListSearch.length){
                                 print("Artikellisten sind ungleich");
 
-                                articleListSearch.clear();
-
-                                for (ArticleDTO a in articleList2) {
-                                  articleListSearch.add(a);
-                                }
+                            refresh();
 
                               }
                               else{
@@ -654,7 +673,6 @@ class _MainPageState extends State<MainPage> {
                               }
 
                               setState(() {
-                                fieldText.clear();
                               });
 
                             }
@@ -738,26 +756,15 @@ class _MainPageState extends State<MainPage> {
 
                               borderRadius: BorderRadius.circular(10.0),
                               padding: EdgeInsets.all(5),
-                              onPressed: (value) {
+                              onPressed: (value) async {
 
                                 if(loadedData){
                                   loadedData = false;
 
-
-
+                                await  deleteArticle(articleListSearch[index].artikel_id!);
 
                                 }
 
-                                // articleList.removeAt(articleList.indexOf(articleListSearch[index]));
-                                //
-                                // articleListSearch.clear();
-                                // for (_Article a in articleList) {
-                                //   if (a.name.toLowerCase().contains(fieldText.text.toLowerCase().trim())) {
-                                //     articleListSearch.add(a);
-                                //   }
-                                // }
-                                //
-                                //  setState(() {});
                               },
                               backgroundColor: Colors.red,
                               foregroundColor: Colors.black,
@@ -767,7 +774,49 @@ class _MainPageState extends State<MainPage> {
 
                           ],
                         ),
+                        startActionPane: ActionPane(
+                          extentRatio: 1,
+                          motion: const DrawerMotion(),
+                          children: [
 
+                            SlidableAction(
+                              autoClose: true,
+
+                              borderRadius: BorderRadius.circular(10.0),
+                              padding: EdgeInsets.all(5),
+                              onPressed: (value) async {
+
+                                if(loadedData){
+
+                                  print("Artikel bearbeiten!");
+
+                                  for( int i = 0 ; i <articleList2.length; i++ ) {
+                                    if (articleList2[i].artikel_id == articleListSearch[index].artikel_id) {
+                                      selectedIndex = i;
+                                    }
+                                  }
+
+                                  image = articleList2[selectedIndex!].logo;
+                                  nameTextController.text =articleList2[selectedIndex!].name ;
+                                  sollmengeTextController.text = articleList2[selectedIndex!].sollmenge.toString();
+                                  warnzeitTextController.text = articleList2[selectedIndex!].warnzeit.toString();
+
+                                  setState(() {
+                                    editarticleView=true;
+                                  });
+
+
+                                }
+
+                              },
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.black,
+                              icon: Icons.mode_edit_outlined,
+                              label: 'Bearbeiten',
+                            ),
+
+                          ],
+                        ),
 
                         child: GestureDetector(
                           onTap: () {
@@ -813,10 +862,10 @@ class _MainPageState extends State<MainPage> {
                                         child: SizedBox.fromSize(
                                           size: const Size.fromRadius(35), // Image radius
                                           child:
-                                          articleList2[index].logo.isEmpty ?
+                                          articleListSearch[index].logo.isEmpty ?
                                           Image.asset("lib/images/articles/empty.png", fit: BoxFit.cover)
                                               :
-                                          Image.memory(base64Decode(articleList2[index].logo), fit: BoxFit.cover,
+                                          Image.memory(base64Decode(articleListSearch[index].logo), fit: BoxFit.cover,
 
                                           gaplessPlayback: true,
                                              // filterQuality: FilterQuality.high,
@@ -1266,6 +1315,19 @@ class _MainPageState extends State<MainPage> {
 
   }
 
+  void refresh() {
+
+    articleListSearch.clear();
+    for (ArticleDTO a in articleList2) {
+      if (a.name.toLowerCase().contains(fieldText.text.toLowerCase().trim())) {
+        articleListSearch.add(ArticleDTO(artikel_id: a.artikel_id, logo: a.logo, name: a.name, sollmenge: a.sollmenge, istmenge: a.istmenge, warnzeit: a.warnzeit));
+      }
+    }
+
+
+  }
+
+
 
   void starteSuche(String value) {
     print("Artikelsuche gestartet! Value: $value");
@@ -1277,7 +1339,7 @@ class _MainPageState extends State<MainPage> {
         if (a.name.toLowerCase().contains(value.toLowerCase().trim())) {
           print("Beschreibung ${a.name}");
 
-          articleListSearch.add(a);
+          articleListSearch.add(ArticleDTO(artikel_id: a.artikel_id, logo: a.logo, name: a.name, sollmenge: a.sollmenge, istmenge: a.istmenge, warnzeit: a.warnzeit));
         }
       }
 
@@ -1290,11 +1352,7 @@ class _MainPageState extends State<MainPage> {
       if(articleList2.length != articleListSearch.length){
         print("Artikellisten sind ungleich");
 
-        articleListSearch.clear();
-
-        for (ArticleDTO a in articleList2) {
-          articleListSearch.add(a);
-        }
+        refresh();
 
         setState(() {
         });
@@ -1338,6 +1396,7 @@ class _MainPageState extends State<MainPage> {
 
   }
 
+
   addArticle() async{
 
     LiveApiRequest<ArticleDTO> liveApiRequest =
@@ -1353,30 +1412,64 @@ class _MainPageState extends State<MainPage> {
 
       print("Artikel erfolgreich hinzugefügt!");
 
-      int article_id = int.parse(apiResponse.body!);
+      try {
 
-      articleList2.add(ArticleDTO(artikel_id: article_id, logo: image, name: nameTextController.text.trim(), sollmenge: int.parse(sollmengeTextController.text.trim()), warnzeit: int.parse(warnzeitTextController.text.trim())));
+        int article_id = int.parse(apiResponse.body!);
 
-      articleListSearch.clear();
-      for (ArticleDTO a in articleList2) {
-        if (a.name.toLowerCase().contains(fieldText.text.toLowerCase().trim())) {
-          articleListSearch.add(a);
-        }
-      }
+        articleList2.add(ArticleDTO(artikel_id: article_id, logo: image, name: nameTextController.text.trim(), sollmenge: int.parse(sollmengeTextController.text.trim()), warnzeit: int.parse(warnzeitTextController.text.trim())));
 
-      setState(() {
+        refresh();
 
+        setState(() {
+
+          loadedData = true;
+
+          image="";
+          nameTextController.text="";
+          sollmengeTextController.text="";
+          warnzeitTextController.text="";
+
+          addarticleView = false;
+          srollcontroller.jumpTo(0);
+        });
+
+      } catch(e) {
+
+        print("Unbekannter Fehler!");
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          duration: Duration(seconds: 5),
+          content:
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+                child: Icon(color: Colors.blue, size: 40, Icons.info_outlined),
+              ),
+              Expanded(
+                child:
+
+                Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Text("Ein Fehler ist aufgetreten!\nEs liegt warscheinlich an dem ausgewählten Artikelbild...\nVersuche es daher mit einem anderen Bild!",
+                    softWrap: true,
+                    style: TextStyle(
+                      height: 0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+        ));
         loadedData = true;
-
-        image="";
-        nameTextController.text="";
-        sollmengeTextController.text="";
-        warnzeitTextController.text="";
-
-        addarticleView = false;
-        srollcontroller.jumpTo(0);
-      });
-
+      }
 
     } else if (apiResponse.status == Status.EXCEPTION) {
       print("Exception!");
@@ -1453,6 +1546,260 @@ class _MainPageState extends State<MainPage> {
   }
 
 
+  deleteArticle(int articleID) async{
+
+    LiveApiRequest<ArticleDTO> liveApiRequest =
+    LiveApiRequest<ArticleDTO>(url: "https://artikelapp.000webhostapp.com/deleteArticle.php");
+    ApiResponse apiResponse = await liveApiRequest.executePost({
+      "articleID": articleID.toString(),
+    });
+    if (apiResponse.status == Status.SUCCESS) {
+
+      print("Artikel erfolgreich gelöscht!");
+
+      int? index;
+      for( int i = 0 ; i <articleList2.length; i++ ) {
+        if (articleList2[i].artikel_id == articleID) {
+          index = i;
+        }
+      }
+      articleList2.removeAt(index!);
+
+
+      refresh();
+
+      setState(() {
+        loadedData = true;
+      });
+
+    } else if (apiResponse.status == Status.EXCEPTION) {
+      print("Exception!");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        content:
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+              child: Icon(color: Colors.orange, size: 40, Icons.warning_outlined),
+            ),
+            Expanded(
+              child:
+
+              Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Text("Server nicht erreichbar...\nPrüfe deine Internetverbindung!",
+                  softWrap: true,
+                  style: TextStyle(
+                    height: 0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+      ));
+      loadedData = true;
+    } else if (apiResponse.status == Status.ERROR) {
+      print("Error!");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        content:
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+              child: Icon(color: Colors.red, size: 40, Icons.error_outlined),
+            ),
+            Expanded(
+              child:
+
+              Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Text("Es ist ein Serverfehler aufgetreten!",
+                  softWrap: true,
+                  style: TextStyle(
+                    height: 0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+      ));
+      loadedData = true;
+    }
+
+  }
+
+
+  updateArticle(int articleID) async{
+
+    LiveApiRequest<ArticleDTO> liveApiRequest =
+    LiveApiRequest<ArticleDTO>(url: "https://artikelapp.000webhostapp.com/updateArticle.php");
+    ApiResponse apiResponse = await liveApiRequest.executePost({
+      "articleID": articleID.toString(),
+      "logo": image,
+      "name": nameTextController.text.trim(),
+      "sollmenge": sollmengeTextController.text.trim(),
+      "warnzeit": warnzeitTextController.text.trim(),
+
+    });
+    if (apiResponse.status == Status.SUCCESS) {
+
+      if(apiResponse.body?.compareTo("{\"Hat geklappt:\":true}") == 0){
+
+        print("Artikel erfolgreich geupdadet!");
+
+        articleList2[selectedIndex!].logo=image;
+        articleList2[selectedIndex!].name=nameTextController.text.trim();
+        articleList2[selectedIndex!].sollmenge= int.parse(sollmengeTextController.text.trim());
+        articleList2[selectedIndex!].warnzeit= int.parse(warnzeitTextController.text.trim());
+
+        refresh();
+
+        setState(() {
+
+          image="";
+          nameTextController.text="";
+          sollmengeTextController.text="";
+          warnzeitTextController.text="";
+
+          editarticleView = false;
+          srollcontroller.jumpTo(0);
+          selectedIndex = null;
+
+          loadedData = true;
+        });
+
+
+      }
+      else{
+
+        print("Unbekannter Fehler!");
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          duration: Duration(seconds: 3),
+          content:
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+                child: Icon(color: Colors.blue, size: 40, Icons.info_outlined),
+              ),
+              Expanded(
+                child:
+
+                Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Text("Ein Fehler ist aufgetreten!\nEs liegt warscheinlich an dem ausgewählten Artikelbild...\nVersuche es daher mit einem anderen Bild!",
+                    softWrap: true,
+                    style: TextStyle(
+                      height: 0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+        ));
+        loadedData = true;
+
+      }
+
+    } else if (apiResponse.status == Status.EXCEPTION) {
+      print("Exception!");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        content:
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+              child: Icon(color: Colors.orange, size: 40, Icons.warning_outlined),
+            ),
+            Expanded(
+              child:
+
+              Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Text("Server nicht erreichbar...\nPrüfe deine Internetverbindung!",
+                  softWrap: true,
+                  style: TextStyle(
+                    height: 0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+      ));
+      loadedData = true;
+    } else if (apiResponse.status == Status.ERROR) {
+      print("Error!");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        content:
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+              child: Icon(color: Colors.red, size: 40, Icons.error_outlined),
+            ),
+            Expanded(
+              child:
+
+              Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Text("Es ist ein Serverfehler aufgetreten!",
+                  softWrap: true,
+                  style: TextStyle(
+                    height: 0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+      ));
+      loadedData = true;
+    }
+
+  }
 
 
   double roundDouble(double value, int places) {
@@ -1469,13 +1816,15 @@ class _MainPageState extends State<MainPage> {
 
         if (image == null) return;
 
+        File?  imgcrop = await _cropImage(imageFile: File(image.path));
+        if (imgcrop == null) return;
+
         setState(() {
 
-          List<int> imageBytes = File(image.path).readAsBytesSync();
+          List<int> imageBytes = File(imgcrop.path).readAsBytesSync();
           this.image = base64Encode(imageBytes);
 
         });
-
 
 
       } on PlatformException catch (e) {
@@ -1495,9 +1844,12 @@ class _MainPageState extends State<MainPage> {
 
         if (image == null) return;
 
+        File?  imgcrop = await _cropImage(imageFile: File(image.path));
+        if (imgcrop == null) return;
+
         setState(() {
 
-          List<int> imageBytes = File(image.path).readAsBytesSync();
+          List<int> imageBytes = File(imgcrop.path).readAsBytesSync();
           this.image = base64Encode(imageBytes);
 
         });
@@ -1509,6 +1861,14 @@ class _MainPageState extends State<MainPage> {
     }
 
   }
+
+  Future<File?> _cropImage({required File imageFile}) async {
+    CroppedFile? croppedImage =
+    await ImageCropper().cropImage(sourcePath: imageFile.path, cropStyle: CropStyle.circle, aspectRatioPresets:const [CropAspectRatioPreset.original]);
+    if (croppedImage == null) return null;
+    return File(croppedImage.path);
+  }
+
 
   bool checkUserInputArticle() {
 
