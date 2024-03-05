@@ -23,7 +23,7 @@ class _MainPageState extends State<MainPage> {
   List<ArticleDTO> articleList2 = [];
   List<ArticleDTO> articleListSearch = <ArticleDTO>[];
 
-  int? selectedIndex;
+  ArticleDTO? selectedArticle;
   bool editarticleView = false;
   bool addarticleView = false;
 
@@ -51,6 +51,7 @@ class _MainPageState extends State<MainPage> {
     print("Init State");
 
     loadData().whenComplete(() => setState(() {
+
           refresh();
 
           loadedData = true;
@@ -250,8 +251,7 @@ class _MainPageState extends State<MainPage> {
                         loadedData = false;
 
                         if (checkUserInputArticle()) {
-                          await updateArticle(
-                              articleList2[selectedIndex!].artikel_id!);
+                          await updateArticle(selectedArticle!.artikel_id!);
                         } else {
                           print("Fehler Eingabe!");
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -344,7 +344,7 @@ class _MainPageState extends State<MainPage> {
                         setState(() {
                           editarticleView = false;
                           srollcontroller.jumpTo(0);
-                          selectedIndex = null;
+                          selectedArticle = null;
                         });
                       }
                     },
@@ -433,7 +433,7 @@ class _MainPageState extends State<MainPage> {
                         } else {
                           print("Fehler Eingabe!");
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            duration: Duration(seconds: 3),
+                            duration: const Duration(seconds: 3),
                             content: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               mainAxisSize: MainAxisSize.max,
@@ -524,8 +524,8 @@ class _MainPageState extends State<MainPage> {
                         });
                       }
                     },
-                    label: Text("Abbrechen"),
-                    icon: Icon(Icons.cancel_outlined),
+                    label: const Text("Abbrechen"),
+                    icon: const Icon(Icons.cancel_outlined),
                   ),
                 ],
               ),
@@ -563,11 +563,11 @@ class _MainPageState extends State<MainPage> {
                           child: ClipOval(
                             child: SizedBox.fromSize(
                               size: const Size.fromRadius(50), // Image radius
-                              child: articleListSearch[selectedIndex!].logo.isEmpty
+                              child: selectedArticle!.logo.isEmpty
                                   ? Image.asset("lib/images/articles/empty.png",
                                       fit: BoxFit.cover)
                                   : Image.memory(
-                                      base64Decode(articleListSearch[selectedIndex!].logo),
+                                      base64Decode(selectedArticle!.logo),
                                       fit: BoxFit.cover,
 
                                       gaplessPlayback: true,
@@ -586,7 +586,7 @@ class _MainPageState extends State<MainPage> {
 
                     Padding(
                       padding: const EdgeInsets.only(left: 10),
-                      child: Text(articleListSearch[selectedIndex!].name,
+                      child: Text(selectedArticle!.name,
                         softWrap: true,
                         //maxLines: 1,
                         style: const TextStyle(
@@ -607,7 +607,7 @@ class _MainPageState extends State<MainPage> {
               child:
             Padding(
               padding: const EdgeInsets.only(bottom: 3),
-              child: articleListSearch[selectedIndex!].mengenListe!.isEmpty ?
+              child: selectedArticle!.mengenListe!.isEmpty ?
 
                   Container(
                     alignment: Alignment.center,
@@ -629,7 +629,7 @@ class _MainPageState extends State<MainPage> {
                   child: ListView.builder(
                       //  shrinkWrap: true,
                       // physics: const ScrollPhysics(),
-                      itemCount: articleListSearch[selectedIndex!].mengenListe!.length,
+                      itemCount: selectedArticle!.mengenListe!.length,
                       itemBuilder: (context, index) {
                         return Slidable(
                           endActionPane: ActionPane(
@@ -715,7 +715,7 @@ class _MainPageState extends State<MainPage> {
                                             Padding(
                                               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                                               child: Text(
-                                                articleListSearch[selectedIndex!]
+                                                selectedArticle!
                                                     .mengenListe![index]
                                                     .menge
                                                     .toString(),
@@ -769,7 +769,7 @@ class _MainPageState extends State<MainPage> {
                                                 Padding(
                                                   padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                                                   child:  Text(
-                                                    DateFormat('dd.MM.yyyy').format(DateTime.parse(articleListSearch[selectedIndex!].mengenListe![index].datum)),
+                                                    DateFormat('dd.MM.yyyy').format(DateTime.parse(selectedArticle!.mengenListe![index].datum)),
                                                     style: const TextStyle(
                                                       height: 0,
                                                       fontWeight: FontWeight.bold,
@@ -780,7 +780,7 @@ class _MainPageState extends State<MainPage> {
                                                 ),
                                               ),
 
-                                             getDifferenceDates(articleListSearch[selectedIndex!].mengenListe![index].datum) > articleListSearch[selectedIndex!].warnzeit
+                                             getDifferenceDates(selectedArticle!.mengenListe![index].datum) > selectedArticle!.warnzeit
                                                     ? const Icon(
                                                   Icons.check,
                                                   color: Colors.green,
@@ -788,7 +788,7 @@ class _MainPageState extends State<MainPage> {
                                                 )
                                                     : Container(),
 
-                                                getDifferenceDates(articleListSearch[selectedIndex!].mengenListe![index].datum) <= articleListSearch[selectedIndex!].warnzeit  &&  getDifferenceDates(articleListSearch[selectedIndex!].mengenListe![index].datum) >= 0
+                                                getDifferenceDates(selectedArticle!.mengenListe![index].datum) <= selectedArticle!.warnzeit  &&  getDifferenceDates(selectedArticle!.mengenListe![index].datum) >= 0
                                                     ? const Icon(
                                                   Icons.warning,
                                                   color: Colors.orange,
@@ -796,7 +796,7 @@ class _MainPageState extends State<MainPage> {
                                                 )
                                                     : Container(),
 
-                                                getDifferenceDates(articleListSearch[selectedIndex!].mengenListe![index].datum) < 0
+                                                getDifferenceDates(selectedArticle!.mengenListe![index].datum) < 0
                                                     ? const Icon(
                                                   Icons.error,
                                                   color: Colors.red,
@@ -1055,7 +1055,7 @@ class _MainPageState extends State<MainPage> {
                         print("Zurück!");
                         setState(() {
 
-                          selectedIndex = null;
+                          selectedArticle = null;
                           showMengenView = false;
                           mengeTextController.text = "0";
                           datum = null;
@@ -1109,7 +1109,7 @@ class _MainPageState extends State<MainPage> {
 
                           MengeDTO? menge;
 
-                          for (MengeDTO m in  articleListSearch[selectedIndex!].mengenListe!) {
+                          for (MengeDTO m in  selectedArticle!.mengenListe!) {
 
                             DateTime mengendatum = DateTime.parse(m.datum);
                             DateTime datumFormated = DateTime(datum!.year, datum!.month, datum!.day);
@@ -1129,7 +1129,7 @@ class _MainPageState extends State<MainPage> {
                           }
                           else{
 
-                          await updateMenge(menge.mengen_id!, menge.menge + int.parse(mengeTextController.text.trim()));
+                          await updateMenge(menge, menge.menge + int.parse(mengeTextController.text.trim()));
 
                           }
 
@@ -1212,6 +1212,8 @@ class _MainPageState extends State<MainPage> {
         ),
       );
     } else {
+
+
       return Container(
         padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
         height: MediaQuery.of(context).size.height -
@@ -1220,7 +1222,7 @@ class _MainPageState extends State<MainPage> {
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
+            const SizedBox(
               height: 30,
             ),
             Row(
@@ -1327,7 +1329,7 @@ class _MainPageState extends State<MainPage> {
                 ),
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 30,
             ),
             Expanded(
@@ -1358,14 +1360,13 @@ class _MainPageState extends State<MainPage> {
                                   SlidableAction(
                                     autoClose: true,
                                     borderRadius: BorderRadius.circular(10.0),
-                                    padding: EdgeInsets.all(5),
+                                    padding: const EdgeInsets.all(5),
                                     onPressed: (value) async {
                                       if (loadedData) {
-                                        loadedData = false;
 
-                                        await deleteArticle(
-                                            articleListSearch[index]
-                                                .artikel_id!);
+                                        loadedData = false;
+                                        await deleteArticle(articleListSearch[index]);
+
                                       }
                                     },
                                     backgroundColor: Colors.red,
@@ -1387,32 +1388,19 @@ class _MainPageState extends State<MainPage> {
                                       if (loadedData) {
                                         print("Artikel bearbeiten!");
 
-                                        for (int i = 0;
-                                            i < articleList2.length;
-                                            i++) {
-                                          if (articleList2[i].artikel_id ==
-                                              articleListSearch[index]
-                                                  .artikel_id) {
-                                            selectedIndex = i;
-                                          }
-                                        }
+                                        ArticleDTO article = articleListSearch[index];
 
-                                        image =
-                                            articleList2[selectedIndex!].logo;
-                                        nameTextController.text =
-                                            articleList2[selectedIndex!].name;
-                                        sollmengeTextController.text =
-                                            articleList2[selectedIndex!]
-                                                .sollmenge
-                                                .toString();
-                                        warnzeitTextController.text =
-                                            articleList2[selectedIndex!]
-                                                .warnzeit
-                                                .toString();
+                                        image =article.logo;
+                                        nameTextController.text = article.name;
+                                        sollmengeTextController.text = article.sollmenge.toString();
+                                        warnzeitTextController.text = article.warnzeit.toString();
+
+                                        selectedArticle = article;
 
                                         setState(() {
                                           editarticleView = true;
                                         });
+
                                       }
                                     },
                                     backgroundColor: Colors.blue,
@@ -1427,30 +1415,21 @@ class _MainPageState extends State<MainPage> {
 
                                   if(loadedData){
 
-                                    print(
-                                        "Ausgewählter Artikel: ${articleListSearch[index].name}");
+                                    print("Ausgewählter Artikel: ${articleListSearch[index].name}");
 
-                                    // for (int i = 0;
-                                    //     i < articleList2.length;
-                                    //     i++) {
-                                    //   if (articleList2[i].artikel_id ==
-                                    //       articleListSearch[index].artikel_id) {
-                                    //     selectedIndex = i;
-                                    //   }
-                                    // }
+                                    ArticleDTO article = articleListSearch[index];
 
-                                    selectedIndex = index;
-
-                                    articleListSearch[selectedIndex!].mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
+                                    article.mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
                                     mengeTextController.text = "0";
                                     datum = null;
+
+                                    selectedArticle = article;
 
                                     setState(() {
                                       showMengenView = true;
                                     });
 
                                   }
-
 
                                 },
                                 child: Card(
@@ -1622,7 +1601,7 @@ class _MainPageState extends State<MainPage> {
                           }),
                     ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 5,
             ),
           ],
@@ -1863,22 +1842,9 @@ class _MainPageState extends State<MainPage> {
     articleListSearch.clear();
     for (ArticleDTO a in articleList2) {
       if (a.name.toLowerCase().contains(fieldText.text.toLowerCase().trim())) {
-        List<MengeDTO> mengenList = [];
-        for (MengeDTO menge in a.mengenListe!) {
-          mengenList.add(MengeDTO(
-              mengen_id: menge.mengen_id,
-              artikel_id: menge.artikel_id,
-              datum: menge.datum,
-              menge: menge.menge));
-        }
-        articleListSearch.add(ArticleDTO(
-            artikel_id: a.artikel_id,
-            logo: a.logo,
-            name: a.name,
-            sollmenge: a.sollmenge,
-            istmenge: a.istmenge,
-            warnzeit: a.warnzeit,
-            mengenListe: mengenList));
+
+        articleListSearch.add(a);
+
       }
     }
   }
@@ -1893,22 +1859,8 @@ class _MainPageState extends State<MainPage> {
         if (a.name.toLowerCase().contains(value.toLowerCase().trim())) {
           print("Beschreibung ${a.name}");
 
-          List<MengeDTO> mengenList = [];
-          for (MengeDTO menge in a.mengenListe!) {
-            mengenList.add(MengeDTO(
-                mengen_id: menge.mengen_id,
-                artikel_id: menge.artikel_id,
-                datum: menge.datum,
-                menge: menge.menge));
-          }
-          articleListSearch.add(ArticleDTO(
-              artikel_id: a.artikel_id,
-              logo: a.logo,
-              name: a.name,
-              sollmenge: a.sollmenge,
-              istmenge: a.istmenge,
-              warnzeit: a.warnzeit,
-              mengenListe: mengenList));
+          articleListSearch.add(a);
+
         }
       }
 
@@ -2126,28 +2078,22 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  deleteArticle(int articleID) async {
+  deleteArticle(ArticleDTO article) async {
     LiveApiRequest<ArticleDTO> liveApiRequest = LiveApiRequest<ArticleDTO>(
         url: "https://artikelapp.000webhostapp.com/deleteArticle.php");
     ApiResponse apiResponse = await liveApiRequest.executePost({
-      "articleID": articleID.toString(),
+      "articleID": article.artikel_id.toString(),
     });
     if (apiResponse.status == Status.SUCCESS) {
       print("Artikel erfolgreich gelöscht!");
 
-      int? index;
-      for (int i = 0; i < articleList2.length; i++) {
-        if (articleList2[i].artikel_id == articleID) {
-          index = i;
-        }
-      }
-      articleList2.removeAt(index!);
-
+      articleList2.remove(article);
       refresh();
 
       setState(() {
         loadedData = true;
       });
+
     } else if (apiResponse.status == Status.EXCEPTION) {
       print("Exception!");
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -2230,12 +2176,10 @@ class _MainPageState extends State<MainPage> {
       if (apiResponse.body?.compareTo("{\"Hat geklappt:\":true}") == 0) {
         print("Artikel erfolgreich geupdadet!");
 
-        articleList2[selectedIndex!].logo = image;
-        articleList2[selectedIndex!].name = nameTextController.text.trim();
-        articleList2[selectedIndex!].sollmenge =
-            int.parse(sollmengeTextController.text.trim());
-        articleList2[selectedIndex!].warnzeit =
-            int.parse(warnzeitTextController.text.trim());
+        selectedArticle!.logo = image;
+        selectedArticle!.name = nameTextController.text.trim();
+        selectedArticle!.sollmenge = int.parse(sollmengeTextController.text.trim());
+        selectedArticle!.warnzeit = int.parse(warnzeitTextController.text.trim());
 
         refresh();
 
@@ -2247,7 +2191,7 @@ class _MainPageState extends State<MainPage> {
 
           editarticleView = false;
           srollcontroller.jumpTo(0);
-          selectedIndex = null;
+          selectedArticle = null;
 
           loadedData = true;
         });
@@ -2352,51 +2296,32 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  updateMenge(int mengen_id, int menge) async {
+  updateMenge(MengeDTO mDTO, int menge) async {
 
     LiveApiRequest<MengeDTO> liveApiRequest = LiveApiRequest<MengeDTO>(
         url: "https://artikelapp.000webhostapp.com/updateMenge.php");
     ApiResponse apiResponse = await liveApiRequest.executePost({
-      "mengenID": mengen_id.toString(),
+      "mengenID": mDTO.mengen_id.toString(),
       "menge": menge.toString(),
     });
     if (apiResponse.status == Status.SUCCESS) {
 
         print("Menge erfolgreich geupdadet!");
 
-        for(ArticleDTO a in articleList2){
+        mDTO.menge = menge ;
 
-        if(a.artikel_id == articleListSearch[selectedIndex!].artikel_id){
-
-          for(MengeDTO m in a.mengenListe!){
-
-            if(m.mengen_id == mengen_id){
-              m.menge = menge;
-            }
-
-          }
-
-
+        int ist = 0;
+        for (MengeDTO m in selectedArticle!.mengenListe!) {
+            ist += m.menge;
         }
-
-        }
-
-
-        for (ArticleDTO ar in articleList2) {
-          int ist = 0;
-          for (MengeDTO menge in ar.mengenListe!) {
-            ist += menge.menge;
-          }
-          ar.istmenge = ist;
-        }
+        selectedArticle!.istmenge = ist;
 
 
         setState(() {
 
           mengeTextController.text = "0";
           datum = null;
-          refresh();
-          articleListSearch[selectedIndex!].mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
+          selectedArticle!.mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
 
           loadedData = true;
         });
@@ -2476,7 +2401,7 @@ class _MainPageState extends State<MainPage> {
     LiveApiRequest<MengeDTO> liveApiRequest = LiveApiRequest<MengeDTO>(
         url: "https://artikelapp.000webhostapp.com/addMenge.php");
     ApiResponse apiResponse = await liveApiRequest.executePost({
-      "artikelID": articleListSearch[selectedIndex!].artikel_id.toString(),
+      "artikelID": selectedArticle!.artikel_id.toString(),
       "menge": mengeTextController.text.trim(),
       "datum": DateFormat('yyyy-MM-dd').format(datum!),
     });
@@ -2486,31 +2411,20 @@ class _MainPageState extends State<MainPage> {
 
       int mengen_id = int.parse(apiResponse.body!);
 
-      for(ArticleDTO a in articleList2){
+      selectedArticle!.mengenListe!.add(MengeDTO(mengen_id: mengen_id, artikel_id: selectedArticle!.artikel_id! , datum: datum.toString(), menge: int.parse(mengeTextController.text.trim())));
 
-        if(a.artikel_id == articleListSearch[selectedIndex!].artikel_id){
-
-        a.mengenListe!.add(MengeDTO(mengen_id: mengen_id, artikel_id: articleListSearch[selectedIndex!].artikel_id! , datum: datum.toString(), menge: int.parse(mengeTextController.text.trim())));
-
-        }
-
+      int ist = 0;
+      for (MengeDTO m in selectedArticle!.mengenListe!) {
+        ist += m.menge;
       }
-
-      for (ArticleDTO ar in articleList2) {
-        int ist = 0;
-        for (MengeDTO menge in ar.mengenListe!) {
-          ist += menge.menge;
-        }
-        ar.istmenge = ist;
-      }
+      selectedArticle!.istmenge = ist;
 
 
       setState(() {
 
         mengeTextController.text = "0";
         datum = null;
-        refresh();
-        articleListSearch[selectedIndex!].mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
+        selectedArticle!.mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
 
         loadedData = true;
       });
