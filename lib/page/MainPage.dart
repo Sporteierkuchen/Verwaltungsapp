@@ -21,7 +21,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
 
-  List<ArticleDTO> articleList2 = [];
+  List<ArticleDTO> articleList = [];
   List<ArticleDTO> articleListSearch = <ArticleDTO>[];
 
   ArticleDTO? selectedArticle;
@@ -1331,7 +1331,7 @@ class _MainPageState extends State<MainPage> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10.0),
                                     ),
-                                    margin: EdgeInsets.symmetric(vertical: 3),
+                                    margin: const EdgeInsets.symmetric(vertical: 3),
                                     color: Colors.grey,
                                     elevation: 3,
                                     child:
@@ -1836,7 +1836,7 @@ class _MainPageState extends State<MainPage> {
 
                               fieldText.clear();
 
-                              if (articleList2.length !=
+                              if (articleList.length !=
                                   articleListSearch.length) {
                                 print("Artikellisten sind ungleich");
 
@@ -1879,8 +1879,11 @@ class _MainPageState extends State<MainPage> {
             const SizedBox(
               height: 30,
             ),
+
+
+
             Expanded(
-              child: articleList2.isEmpty || articleListSearch.isEmpty
+              child: articleList.isEmpty || articleListSearch.isEmpty
                   ? const Padding(
                       padding: EdgeInsets.all(20),
                       child: Text(
@@ -1930,7 +1933,7 @@ class _MainPageState extends State<MainPage> {
                                   SlidableAction(
                                     autoClose: true,
                                     borderRadius: BorderRadius.circular(10.0),
-                                    padding: EdgeInsets.all(5),
+                                    padding: const EdgeInsets.all(5),
                                     onPressed: (value) async {
                                       if (loadedData) {
                                         print("Artikel bearbeiten!");
@@ -2389,7 +2392,7 @@ class _MainPageState extends State<MainPage> {
 
   void refresh() {
     articleListSearch.clear();
-    for (ArticleDTO a in articleList2) {
+    for (ArticleDTO a in articleList) {
       if (a.name.toLowerCase().contains(fieldText.text.toLowerCase().trim())) {
 
         articleListSearch.add(a);
@@ -2404,7 +2407,7 @@ class _MainPageState extends State<MainPage> {
     if (value.trim().isNotEmpty) {
       articleListSearch.clear();
 
-      for (ArticleDTO a in articleList2) {
+      for (ArticleDTO a in articleList) {
         if (a.name.toLowerCase().contains(value.toLowerCase().trim())) {
           print("Beschreibung ${a.name}");
 
@@ -2415,7 +2418,7 @@ class _MainPageState extends State<MainPage> {
 
       setState(() {});
     } else {
-      if (articleList2.length != articleListSearch.length) {
+      if (articleList.length != articleListSearch.length) {
         print("Artikellisten sind ungleich");
 
         refresh();
@@ -2428,12 +2431,12 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future<void> loadData() async {
-    articleList2.clear();
+    articleList.clear();
 
     await loadArticles();
 
     if (loadedDataSuccessful) {
-      for (ArticleDTO a in articleList2) {
+      for (ArticleDTO a in articleList) {
         int ist = 0;
         for (MengeDTO menge in a.mengenListe!) {
           ist += menge.menge;
@@ -2452,11 +2455,11 @@ class _MainPageState extends State<MainPage> {
 
       List<ArticleDTO>.from(jsonDecode(apiResponse.body!)
           .map((model) => ArticleDTO.fromJson(model))).forEach((element) {
-        articleList2.add(element);
+        articleList.add(element);
       });
 
       loadedDataSuccessful = true;
-      for (int i = 0; i < articleList2.length; i++) {
+      for (int i = 0; i < articleList.length; i++) {
         if (loadedDataSuccessful) {
           await loadMengen(i);
         }
@@ -2472,14 +2475,14 @@ class _MainPageState extends State<MainPage> {
     LiveApiRequest<MengeDTO> liveApiRequest = LiveApiRequest<MengeDTO>(
         url: "https://artikelapp.000webhostapp.com/getMengen.php");
     ApiResponse apiResponse = await liveApiRequest
-        .executePost({"articleID": articleList2[index].artikel_id.toString()});
+        .executePost({"articleID": articleList[index].artikel_id.toString()});
     if (apiResponse.status == Status.SUCCESS) {
       List<MengeDTO> mengenList = [];
       List<MengeDTO>.from(jsonDecode(apiResponse.body!)
           .map((model) => MengeDTO.fromJson(model))).forEach((element) {
         mengenList.add(element);
       });
-      articleList2[index].mengenListe = mengenList;
+      articleList[index].mengenListe = mengenList;
 
       loadedDataSuccessful = true;
     } else if (apiResponse.status == Status.EXCEPTION) {
@@ -2504,7 +2507,7 @@ class _MainPageState extends State<MainPage> {
       try {
         int article_id = int.parse(apiResponse.body!);
 
-        articleList2.add(ArticleDTO(
+        articleList.add(ArticleDTO(
             artikel_id: article_id,
             logo: image,
             name: nameTextController.text.trim(),
@@ -2635,7 +2638,7 @@ class _MainPageState extends State<MainPage> {
     if (apiResponse.status == Status.SUCCESS) {
       print("Artikel erfolgreich gelöscht!");
 
-      articleList2.remove(article);
+      articleList.remove(article);
       refresh();
 
       setState(() {
