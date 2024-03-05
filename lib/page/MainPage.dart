@@ -20,6 +20,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+
   List<ArticleDTO> articleList2 = [];
   List<ArticleDTO> articleListSearch = <ArticleDTO>[];
 
@@ -32,7 +33,6 @@ class _MainPageState extends State<MainPage> {
   bool showEntnehmenView = false;
 
   final fieldText = TextEditingController();
-  final srollcontroller = ScrollController();
 
   String image = "";
   final nameTextController = TextEditingController();
@@ -66,20 +66,22 @@ class _MainPageState extends State<MainPage> {
   dispose() {
     print("Disposed");
     super.dispose();
-    srollcontroller.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     if (loadedData && loadedDataSuccessful) {
       return Scaffold(
-
           //resizeToAvoidBottomInset: false ,
           body: SafeArea(
+
               child: SingleChildScrollView(
-        controller: srollcontroller,
-        child: getContent(),
-      )));
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: getContent()
+              ),
+
+          ),
+      );
     } else if (loadedDataSuccessful == false && loadedData) {
       return Scaffold(
 
@@ -185,358 +187,373 @@ class _MainPageState extends State<MainPage> {
 
   Widget getContent() {
     if (editarticleView) {
-      return Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 25),
-                child: Text(
-                  "Artikel bearbeiten",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 24,
+      return
+      
+        Container(
+          height: MediaQuery.of(context).size.height -
+              MediaQuery.of(context).padding.top,
+
+          child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 25),
+                  child: Text(
+                    "Artikel bearbeiten",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 24,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              getAddArticleView(),
-              const SizedBox(
-                height: 25,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                // mainAxisAlignment:
-                // MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton.icon(
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.grey),
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.black),
-                      overlayColor: MaterialStateProperty.resolveWith<Color>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.pressed)) {
-                            return Colors
-                                .greenAccent; // Change this to desired press color
-                          }
-                          return Colors
-                              .greenAccent; // Change this to desired press color
-                        },
-                      ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: const BorderSide(
-                              color:
-                                  Color(0xFF222222)), // Border color and width
-                        ),
-                      ),
-                      padding: MaterialStateProperty.all<EdgeInsets>(
-                          const EdgeInsets.all(5)),
-                      textStyle: MaterialStateProperty.all<TextStyle>(
-                        const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      // Flutter doesn't support transitions for state changes; you'd use animations for that.
-                    ),
-                    onPressed: () async {
-                      if (loadedData) {
-                        loadedData = false;
+                const SizedBox(
+                  height: 12,
+                ),
+                
+                Expanded(child: getAddArticleView()),
 
-                        if (checkUserInputArticle()) {
-                          await updateArticle(selectedArticle!.artikel_id!);
-                        } else {
-                          print("Fehler Eingabe!");
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            duration: const Duration(seconds: 3),
-                            content: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.max,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Padding(
-                                  padding: EdgeInsets.only(
-                                      left: 5, right: 15, top: 5, bottom: 5),
-                                  child: Icon(
-                                      color: Colors.orangeAccent,
-                                      size: 40,
-                                      Icons.warning_outlined),
-                                ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(5.0),
-                                    child: Text(
-                                      errorMessage,
-                                      softWrap: true,
-                                      style: const TextStyle(
-                                        height: 0,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.orangeAccent,
-                                        fontSize: 16,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    // mainAxisAlignment:
+                    // MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton.icon(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.grey),
+                          foregroundColor:
+                              MaterialStateProperty.all<Color>(Colors.black),
+                          overlayColor: MaterialStateProperty.resolveWith<Color>(
+                            (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.pressed)) {
+                                return Colors
+                                    .greenAccent; // Change this to desired press color
+                              }
+                              return Colors
+                                  .greenAccent; // Change this to desired press color
+                            },
+                          ),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: const BorderSide(
+                                  color:
+                                      Color(0xFF222222)), // Border color and width
+                            ),
+                          ),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                              const EdgeInsets.all(5)),
+                          textStyle: MaterialStateProperty.all<TextStyle>(
+                            const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          // Flutter doesn't support transitions for state changes; you'd use animations for that.
+                        ),
+                        onPressed: () async {
+                          if (loadedData) {
+                            loadedData = false;
+
+                            if (checkUserInputArticle()) {
+                              await updateArticle(selectedArticle!.artikel_id!);
+                            } else {
+                              print("Fehler Eingabe!");
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                duration: const Duration(seconds: 3),
+                                content: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.max,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                      padding: EdgeInsets.only(
+                                          left: 5, right: 15, top: 5, bottom: 5),
+                                      child: Icon(
+                                          color: Colors.orangeAccent,
+                                          size: 40,
+                                          Icons.warning_outlined),
+                                    ),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(5.0),
+                                        child: Text(
+                                          errorMessage,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            height: 0,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.orangeAccent,
+                                            fontSize: 16,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ));
-                          loadedData = true;
-                        }
-                      }
-                    },
-                    label: const Text("Speichern"),
-                    icon: const Icon(Icons.save),
-                  ),
-                  const SizedBox(
-                    width: 50,
-                  ),
-                  ElevatedButton.icon(
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.grey),
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.black),
-                      overlayColor: MaterialStateProperty.resolveWith<Color>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.pressed)) {
-                            return Colors
-                                .redAccent; // Change this to desired press color
+                              ));
+                              loadedData = true;
+                            }
                           }
-                          return Colors
-                              .redAccent; // Change this to desired press color
                         },
+                        label: const Text("Speichern"),
+                        icon: const Icon(Icons.save),
                       ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: const BorderSide(
-                              color:
-                                  Color(0xFF222222)), // Border color and width
+                      const SizedBox(
+                        width: 50,
+                      ),
+                      ElevatedButton.icon(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.grey),
+                          foregroundColor:
+                              MaterialStateProperty.all<Color>(Colors.black),
+                          overlayColor: MaterialStateProperty.resolveWith<Color>(
+                            (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.pressed)) {
+                                return Colors
+                                    .redAccent; // Change this to desired press color
+                              }
+                              return Colors
+                                  .redAccent; // Change this to desired press color
+                            },
+                          ),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: const BorderSide(
+                                  color:
+                                      Color(0xFF222222)), // Border color and width
+                            ),
+                          ),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                              const EdgeInsets.all(5)),
+                          textStyle: MaterialStateProperty.all<TextStyle>(
+                            const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          // Flutter doesn't support transitions for state changes; you'd use animations for that.
                         ),
-                      ),
-                      padding: MaterialStateProperty.all<EdgeInsets>(
-                          const EdgeInsets.all(5)),
-                      textStyle: MaterialStateProperty.all<TextStyle>(
-                        const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      // Flutter doesn't support transitions for state changes; you'd use animations for that.
-                    ),
-                    onPressed: () {
-                      if (loadedData) {
-                        print("Abbrechen!");
+                        onPressed: () {
+                          if (loadedData) {
+                            print("Abbrechen!");
 
-                        image = "";
-                        nameTextController.text = "";
-                        sollmengeTextController.text = "";
-                        warnzeitTextController.text = "";
+                            image = "";
+                            nameTextController.text = "";
+                            sollmengeTextController.text = "";
+                            warnzeitTextController.text = "";
 
-                        setState(() {
-                          editarticleView = false;
-                          srollcontroller.jumpTo(0);
-                          selectedArticle = null;
-                        });
-                      }
-                    },
-                    label: Text("Abbrechen"),
-                    icon: const Icon(Icons.cancel_outlined),
+                            setState(() {
+                              editarticleView = false;
+                              selectedArticle = null;
+                            });
+                          }
+                        },
+                        label: Text("Abbrechen"),
+                        icon: const Icon(Icons.cancel_outlined),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
+                ),
+              ],
+            ),
+          ],
+                ),
+        );
     } else if (addarticleView) {
-      return Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Padding(
-                padding:
-                    EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 5),
-                child: Text(
-                  "Artikel hinzufügen",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 24,
+      return
+
+        Container(
+          height: MediaQuery.of(context).size.height -
+              MediaQuery.of(context).padding.top,
+
+          child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Padding(
+                  padding:
+                      EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 5),
+                  child: Text(
+                    "Artikel hinzufügen",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 24,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              getAddArticleView(),
-              const SizedBox(
-                height: 25,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                // mainAxisAlignment:
-                // MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton.icon(
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.grey),
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.black),
-                      overlayColor: MaterialStateProperty.resolveWith<Color>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.pressed)) {
-                            return Colors
-                                .greenAccent; // Change this to desired press color
-                          }
-                          return Colors
-                              .greenAccent; // Change this to desired press color
-                        },
-                      ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: const BorderSide(
-                              color:
-                                  Color(0xFF222222)), // Border color and width
-                        ),
-                      ),
-                      padding: MaterialStateProperty.all<EdgeInsets>(
-                          const EdgeInsets.all(5)),
-                      textStyle: MaterialStateProperty.all<TextStyle>(
-                        const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      // Flutter doesn't support transitions for state changes; you'd use animations for that.
-                    ),
-                    onPressed: () async {
-                      if (loadedData) {
-                        loadedData = false;
+                const SizedBox(
+                  height: 12,
+                ),
+                Expanded(child: getAddArticleView()),
 
-                        if (checkUserInputArticle()) {
-                          await addArticle();
-                        } else {
-                          print("Fehler Eingabe!");
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            duration: const Duration(seconds: 3),
-                            content: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.max,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Padding(
-                                  padding: EdgeInsets.only(
-                                      left: 5, right: 15, top: 5, bottom: 5),
-                                  child: Icon(
-                                      color: Colors.orangeAccent,
-                                      size: 40,
-                                      Icons.warning_outlined),
-                                ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(5.0),
-                                    child: Text(
-                                      errorMessage,
-                                      softWrap: true,
-                                      style: const TextStyle(
-                                        height: 0,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.orangeAccent,
-                                        fontSize: 16,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    // mainAxisAlignment:
+                    // MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton.icon(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.grey),
+                          foregroundColor:
+                              MaterialStateProperty.all<Color>(Colors.black),
+                          overlayColor: MaterialStateProperty.resolveWith<Color>(
+                            (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.pressed)) {
+                                return Colors
+                                    .greenAccent; // Change this to desired press color
+                              }
+                              return Colors
+                                  .greenAccent; // Change this to desired press color
+                            },
+                          ),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: const BorderSide(
+                                  color:
+                                      Color(0xFF222222)), // Border color and width
+                            ),
+                          ),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                              const EdgeInsets.all(5)),
+                          textStyle: MaterialStateProperty.all<TextStyle>(
+                            const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          // Flutter doesn't support transitions for state changes; you'd use animations for that.
+                        ),
+                        onPressed: () async {
+                          if (loadedData) {
+                            loadedData = false;
+
+                            if (checkUserInputArticle()) {
+                              await addArticle();
+                            } else {
+                              print("Fehler Eingabe!");
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                duration: const Duration(seconds: 3),
+                                content: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.max,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                      padding: EdgeInsets.only(
+                                          left: 5, right: 15, top: 5, bottom: 5),
+                                      child: Icon(
+                                          color: Colors.orangeAccent,
+                                          size: 40,
+                                          Icons.warning_outlined),
+                                    ),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(5.0),
+                                        child: Text(
+                                          errorMessage,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            height: 0,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.orangeAccent,
+                                            fontSize: 16,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ));
-                          loadedData = true;
-                        }
-                      }
-                    },
-                    label: const Text("Hinzufügen"),
-                    icon: const Icon(Icons.save),
-                  ),
-                  const SizedBox(
-                    width: 50,
-                  ),
-                  ElevatedButton.icon(
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.grey),
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.black),
-                      overlayColor: MaterialStateProperty.resolveWith<Color>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.pressed)) {
-                            return Colors
-                                .redAccent; // Change this to desired press color
+                              ));
+                              loadedData = true;
+                            }
                           }
-                          return Colors
-                              .redAccent; // Change this to desired press color
                         },
+                        label: const Text("Hinzufügen"),
+                        icon: const Icon(Icons.save),
                       ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: const BorderSide(
-                              color:
-                                  Color(0xFF222222)), // Border color and width
+                      const SizedBox(
+                        width: 50,
+                      ),
+                      ElevatedButton.icon(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.grey),
+                          foregroundColor:
+                              MaterialStateProperty.all<Color>(Colors.black),
+                          overlayColor: MaterialStateProperty.resolveWith<Color>(
+                            (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.pressed)) {
+                                return Colors
+                                    .redAccent; // Change this to desired press color
+                              }
+                              return Colors
+                                  .redAccent; // Change this to desired press color
+                            },
+                          ),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: const BorderSide(
+                                  color:
+                                      Color(0xFF222222)), // Border color and width
+                            ),
+                          ),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                              const EdgeInsets.all(5)),
+                          textStyle: MaterialStateProperty.all<TextStyle>(
+                            const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          // Flutter doesn't support transitions for state changes; you'd use animations for that.
                         ),
-                      ),
-                      padding: MaterialStateProperty.all<EdgeInsets>(
-                          const EdgeInsets.all(5)),
-                      textStyle: MaterialStateProperty.all<TextStyle>(
-                        const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      // Flutter doesn't support transitions for state changes; you'd use animations for that.
-                    ),
-                    onPressed: () {
-                      if (loadedData) {
-                        print("Abbrechen!");
-                        image = "";
-                        nameTextController.text = "";
-                        sollmengeTextController.text = "";
-                        warnzeitTextController.text = "";
+                        onPressed: () {
+                          if (loadedData) {
+                            print("Abbrechen!");
+                            image = "";
+                            nameTextController.text = "";
+                            sollmengeTextController.text = "";
+                            warnzeitTextController.text = "";
 
-                        setState(() {
-                          addarticleView = false;
-                          srollcontroller.jumpTo(0);
-                        });
-                      }
-                    },
-                    label: const Text("Abbrechen"),
-                    icon: const Icon(Icons.cancel_outlined),
+                            setState(() {
+                              addarticleView = false;
+                            });
+                          }
+                        },
+                        label: const Text("Abbrechen"),
+                        icon: const Icon(Icons.cancel_outlined),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
+                ),
+              ],
+            ),
+          ],
+                ),
+        );
     } else if (showMengenView) {
       
       return Container(
@@ -1049,6 +1066,7 @@ class _MainPageState extends State<MainPage> {
                 mainAxisAlignment:
                 MainAxisAlignment.spaceAround,
                 children: [
+
                   ElevatedButton(
                     onPressed: () {
 
@@ -1584,7 +1602,12 @@ class _MainPageState extends State<MainPage> {
 
                           if(checkUserInputEntnehmen()){
 
-
+                              if(selectedMenge!.menge == int.parse(entnehmenTextController.text)){
+                                  await deleteMenge(selectedMenge!);
+                              }
+                              else{
+                                  await entnehmeMenge(selectedMenge!, selectedMenge!.menge - int.parse(entnehmenTextController.text.trim()));
+                              }
 
                           }
                           else{
@@ -2501,7 +2524,6 @@ class _MainPageState extends State<MainPage> {
           warnzeitTextController.text = "";
 
           addarticleView = false;
-          srollcontroller.jumpTo(0);
         });
       } catch (e) {
         print("Unbekannter Fehler!");
@@ -2716,7 +2738,6 @@ class _MainPageState extends State<MainPage> {
           warnzeitTextController.text = "";
 
           editarticleView = false;
-          srollcontroller.jumpTo(0);
           selectedArticle = null;
 
           loadedData = true;
@@ -3046,6 +3067,12 @@ class _MainPageState extends State<MainPage> {
 
         setState(() {
 
+          showEntnehmenView = false;
+          showMengenView = true;
+
+          selectedMenge = null;
+          entnehmenTextController.text = "0";
+
           loadedData = true;
         });
 
@@ -3115,6 +3142,103 @@ class _MainPageState extends State<MainPage> {
         ));
         loadedData = true;
       }
+  }
+
+  entnehmeMenge(MengeDTO mDTO, int menge) async {
+
+    LiveApiRequest<MengeDTO> liveApiRequest = LiveApiRequest<MengeDTO>(
+        url: "https://artikelapp.000webhostapp.com/updateMenge.php");
+    ApiResponse apiResponse = await liveApiRequest.executePost({
+      "mengenID": mDTO.mengen_id.toString(),
+      "menge": menge.toString(),
+    });
+    if (apiResponse.status == Status.SUCCESS) {
+
+      print("Menge erfolgreich entnommen!");
+
+      mDTO.menge = menge ;
+
+      int ist = 0;
+      for (MengeDTO m in selectedArticle!.mengenListe!) {
+        ist += m.menge;
+      }
+      selectedArticle!.istmenge = ist;
+
+
+      setState(() {
+
+        entnehmenTextController.text = "0";
+        loadedData = true;
+      });
+
+
+    } else if (apiResponse.status == Status.EXCEPTION) {
+      print("Exception!");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+              child:
+              Icon(color: Colors.orange, size: 40, Icons.warning_outlined),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Text(
+                  "Server nicht erreichbar...\nPrüfe deine Internetverbindung!",
+                  softWrap: true,
+                  style: TextStyle(
+                    height: 0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ));
+      loadedData = true;
+    } else if (apiResponse.status == Status.ERROR) {
+      print("Error!");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+              child: Icon(color: Colors.red, size: 40, Icons.error_outlined),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Text(
+                  "Es ist ein Serverfehler aufgetreten!",
+                  softWrap: true,
+                  style: TextStyle(
+                    height: 0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ));
+      loadedData = true;
+    }
+
   }
 
   double roundDouble(double value, int places) {
