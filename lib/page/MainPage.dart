@@ -27,7 +27,9 @@ class _MainPageState extends State<MainPage> {
   bool editarticleView = false;
   bool addarticleView = false;
 
+  MengeDTO? selectedMenge;
   bool showMengenView = false;
+  bool showEntnehmenView = false;
 
   final fieldText = TextEditingController();
   final srollcontroller = ScrollController();
@@ -39,6 +41,8 @@ class _MainPageState extends State<MainPage> {
 
   final mengeTextController = TextEditingController();
   DateTime? datum;
+
+  final entnehmenTextController = TextEditingController();
 
   bool loadedData = false;
   bool loadedDataSuccessful = false;
@@ -641,12 +645,12 @@ class _MainPageState extends State<MainPage> {
                                 borderRadius: BorderRadius.circular(10.0),
                                 padding: EdgeInsets.all(5),
                                 onPressed: (value) async {
-                                  // if(loadedData){
-                                  //   loadedData = false;
-                                  //
-                                  //   await  deleteArticle(articleListSearch[index].artikel_id!);
-                                  //
-                                  // }
+                                  if(loadedData){
+                                    loadedData = false;
+
+                                   await deleteMenge(selectedArticle!.mengenListe![index]);
+
+                                  }
                                 },
                                 backgroundColor: Colors.red,
                                 foregroundColor: Colors.black,
@@ -660,17 +664,15 @@ class _MainPageState extends State<MainPage> {
 
                               if(loadedData){
 
-                                // print("Ausgewählter Artikel: ${articleListSearch[index].name}");
-                                //
-                                // for( int i = 0 ; i <articleList2.length; i++ ) {
-                                //   if (articleList2[i].artikel_id == articleListSearch[index].artikel_id) {
-                                //     selectedIndex = i;
-                                //   }
-                                // }
-                                //
-                                // setState(() {
-                                //   showMengenView = true;
-                                // });
+                                 print("Ausgewählte Menge: Anzahl: ${selectedArticle!.mengenListe![index].menge} Datum: ${selectedArticle!.mengenListe![index].datum}");
+
+                                 entnehmenTextController.text = "0";
+                                 selectedMenge = selectedArticle!.mengenListe![index];
+
+                                setState(() {
+                                  showEntnehmenView = true;
+                                  showMengenView = false;
+                                });
 
                               }
 
@@ -1211,8 +1213,530 @@ class _MainPageState extends State<MainPage> {
           ],
         ),
       );
-    } else {
+    }
+    else if (showEntnehmenView) {
 
+      return Container(
+        padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+        height: MediaQuery.of(context).size.height -
+            MediaQuery.of(context).padding.top,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            Padding(
+              padding: const EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+
+                  Container(
+                    padding: const EdgeInsets.all(2), // Border width
+                    decoration: const BoxDecoration(
+                        color: Colors.black, shape: BoxShape.circle),
+                    child: ClipOval(
+                      child: SizedBox.fromSize(
+                        size: const Size.fromRadius(100), // Image radius
+                        child: selectedArticle!.logo.isEmpty
+                            ? Image.asset("lib/images/articles/empty.png",
+                            fit: BoxFit.cover)
+                            : Image.memory(
+                          base64Decode(selectedArticle!.logo),
+                          fit: BoxFit.cover,
+
+                          gaplessPlayback: true,
+                          // filterQuality: FilterQuality.high,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.only( top: 10),
+                    child: Text(selectedArticle!.name,
+                      softWrap: true,
+                      maxLines: 2,
+                      style: const TextStyle(
+                        height: 0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        fontSize: 30,
+                      ),
+                    ),
+                  ),
+
+                ],
+              ),
+            ),
+
+            
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color:  Colors.transparent,
+                ),
+                padding: const EdgeInsets.only(bottom: 20),
+                child:
+                Column(
+                  children: [
+
+                    Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        margin: const EdgeInsets.all(5),
+                        color: Colors.white,
+                        elevation: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                          child: Row(
+                            children: [
+
+                              Container(
+                                child:
+
+                                Column(children: [
+
+                                  const Text(
+                                    "Anzahl",
+                                    style: TextStyle(
+                                      height: 0,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 10,),
+
+                                  Card(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                    margin: EdgeInsets.symmetric(vertical: 3),
+                                    color: Colors.grey,
+                                    elevation: 3,
+                                    child:
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                      child: Text(selectedMenge!.menge.toString(),
+                                        style: const TextStyle(
+                                          height: 0,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontSize: 25,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                ],),
+                              ),
+
+                              const SizedBox(
+                                width: 10,
+                              ),
+
+
+                              Expanded(
+                                child: Container(
+
+                                  child:
+
+                                  Column(children: [
+
+                                    const Text(
+                                      "Mindesthaltbarkeitsdatum",
+                                      style: TextStyle(
+                                        height: 0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 10,),
+
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+
+                                        Container(
+                                          margin: const EdgeInsets.symmetric(vertical: 3),
+                                          decoration: const BoxDecoration(
+                                              color:  Colors.transparent,
+                                              borderRadius: BorderRadius.all(Radius.circular(10))
+                                          ),
+
+                                          child:
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                            child:  Text(
+                                              DateFormat('dd.MM.yyyy').format(DateTime.parse(selectedMenge!.datum)),
+                                              style: const TextStyle(
+                                                height: 0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                                fontSize: 25,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+
+                                        getDifferenceDates(selectedMenge!.datum) > selectedArticle!.warnzeit
+                                            ? const Icon(
+                                          Icons.check,
+                                          color: Colors.green,
+                                          size: 50,
+                                        )
+                                            : Container(),
+
+                                        getDifferenceDates(selectedMenge!.datum) <= selectedArticle!.warnzeit  &&  getDifferenceDates(selectedMenge!.datum) >= 0
+                                            ? const Icon(
+                                          Icons.warning,
+                                          color: Colors.orange,
+                                          size: 50,
+                                        )
+                                            : Container(),
+
+                                        getDifferenceDates(selectedMenge!.datum) < 0
+                                            ? const Icon(
+                                          Icons.error,
+                                          color: Colors.red,
+                                          size: 50,
+                                        )
+                                            : Container(),
+
+                                      ],),
+
+                                  ],),
+
+                                ),
+                              ),
+
+                            ],
+                          ),
+                        )
+                    ),
+
+
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20 ,vertical: 20),
+
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+
+                          const Text(
+                            "Anzahl",
+                            style: TextStyle(
+                              height: 0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                              fontSize: 22,
+                            ),
+                          ),
+
+                          const SizedBox(height: 5,),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+
+                            GestureDetector(
+                              onTap: () {
+
+                                if(loadedData){
+
+                                  try {
+
+                                    int menge = int.parse(entnehmenTextController.text);
+
+                                    if(menge<0 || menge > selectedMenge!.menge){
+                                      entnehmenTextController.text = "0";
+                                    }
+                                    else if(menge == 0){
+                                    }
+                                    else{
+
+                                      menge--;
+                                      entnehmenTextController.text = menge.toString();
+
+                                    }
+
+                                  } catch(e) {
+                                    entnehmenTextController.text = "0";
+                                  }
+
+                                  setState(() {});
+
+                                }
+
+                              },
+                              child:
+
+
+                              Container(
+                                decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.black),
+                                  color: Colors.grey[100],
+                                ),
+
+                                child: const Icon(
+                                  Icons.arrow_left,
+                                  color: Colors.black,
+                                  size: 50,
+                                ),
+                              ),
+                            ),
+
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.15,
+                              height: 50,
+                              alignment: Alignment.center,
+                              color: Colors.grey[300],
+                              child: TextField(
+                                controller: entnehmenTextController,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.normal),
+                                textAlignVertical: TextAlignVertical.center,
+                                maxLength: 25,
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.only(),
+                                  filled: true,
+                                  fillColor: Colors.transparent,
+                                  counterText: "",
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
+                                    borderSide:
+                                    BorderSide(color: Colors.transparent, width: 0.0),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
+                                    borderSide:
+                                    BorderSide(color: Colors.transparent, width: 0.0),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            GestureDetector(
+                              onTap: () {
+
+                                if(loadedData){
+
+                                  try {
+
+                                    int menge = int.parse(entnehmenTextController.text);
+
+                                    if(menge<0 || menge > selectedMenge!.menge){
+                                      entnehmenTextController.text = "0";
+                                    }
+                                    else if(menge == selectedMenge!.menge){
+                                    }
+                                    else{
+
+                                      menge++;
+                                      entnehmenTextController.text = menge.toString();
+
+                                    }
+
+                                  } catch(e) {
+                                    entnehmenTextController.text = "0";
+                                  }
+
+                                  setState(() {});
+
+                                }
+
+                              },
+                              child:
+
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.black),
+                                  color: Colors.grey[100],
+                                ),
+
+                                child: const Icon(
+                                  Icons.arrow_right,
+                                  color: Colors.black,
+                                  size: 50,
+                                ),
+                              ),
+                            ),
+
+                          ],)
+
+
+                        ],),
+                      ),
+                    ),
+
+                    ElevatedButton(
+                      onPressed: () async {
+
+                        if(loadedData){
+                          loadedData = false;
+
+                          if(checkUserInputEntnehmen()){
+
+
+
+                          }
+                          else{
+
+                            print("Fehler Eingabe!");
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              duration: const Duration(seconds: 3),
+                              content: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.max,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.only(
+                                        left: 5, right: 15, top: 5, bottom: 5),
+                                    child: Icon(
+                                        color: Colors.orangeAccent,
+                                        size: 40,
+                                        Icons.warning_outlined),
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(5.0),
+                                      child: Text(
+                                        errorMessage,
+                                        softWrap: true,
+                                        style: const TextStyle(
+                                          height: 0,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.orangeAccent,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ));
+                            loadedData = true;
+
+                          }
+
+                        }
+
+                      },
+                      style:
+                      ElevatedButton.styleFrom(
+                        foregroundColor:
+                        Colors.white,
+                        backgroundColor:
+                        Colors.green[300],
+                        side: const BorderSide(
+                            color: Colors.black,
+                            width: 1),
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+
+                        shape:
+                        RoundedRectangleBorder(
+                          borderRadius:
+                          BorderRadius.circular(
+                              10),
+                        ),
+                        // Text Color (Foreground color)
+                      ),
+                      child: const Text(
+                        'Entnehmen',
+                        style: TextStyle(fontSize: 25,),
+                      ),
+                    )
+
+                  ],
+                ),
+
+
+              ),
+            ),
+
+
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Row(
+                mainAxisAlignment:
+                MainAxisAlignment.start,
+                children: [
+
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: ElevatedButton(
+                      onPressed: () {
+
+                        if(loadedData){
+
+                          print("Zurück!");
+                          setState(() {
+
+                            selectedMenge = null;
+                            entnehmenTextController.text = "0";
+
+                            showEntnehmenView = false;
+                            showMengenView = true;
+
+                          });
+
+                        }
+
+                      },
+                      style:
+                      ElevatedButton.styleFrom(
+                        foregroundColor:
+                        Colors.white,
+                        backgroundColor:
+                        Colors.red[300],
+                        side: const BorderSide(
+                            color: Colors.black,
+                            width: 1),
+                        padding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5),
+
+                        shape:
+                        RoundedRectangleBorder(
+                          borderRadius:
+                          BorderRadius.circular(
+                              10),
+                        ),
+                        // Text Color (Foreground color)
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_outlined,
+                        size: 25,
+
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+
+
+                  // SizedBox(width: MediaQuery.of(context).size.width* 0.05),
+
+
+                ],
+              ),
+            ),
+
+          ],
+        ),
+      );
+
+    }
+    else {
 
       return Container(
         padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
@@ -1609,6 +2133,8 @@ class _MainPageState extends State<MainPage> {
       );
     }
   }
+
+
 
   Widget getAddArticleView() {
     return Column(
@@ -2396,7 +2922,7 @@ class _MainPageState extends State<MainPage> {
 
   }
 
-  addMenge()  async {
+  addMenge() async {
 
     LiveApiRequest<MengeDTO> liveApiRequest = LiveApiRequest<MengeDTO>(
         url: "https://artikelapp.000webhostapp.com/addMenge.php");
@@ -2499,6 +3025,97 @@ class _MainPageState extends State<MainPage> {
 
   }
 
+  deleteMenge(MengeDTO mengeDTO) async {
+
+      LiveApiRequest<MengeDTO> liveApiRequest = LiveApiRequest<MengeDTO>(
+          url: "https://artikelapp.000webhostapp.com/deleteMenge.php");
+      ApiResponse apiResponse = await liveApiRequest.executePost({
+        "mengenID": mengeDTO.mengen_id.toString(),
+      });
+      if (apiResponse.status == Status.SUCCESS) {
+
+        print("Menge erfolgreich gelöscht!");
+
+        selectedArticle!.mengenListe!.remove(mengeDTO);
+
+        int ist = 0;
+        for (MengeDTO m in selectedArticle!.mengenListe!) {
+          ist += m.menge;
+        }
+        selectedArticle!.istmenge = ist;
+
+        setState(() {
+
+          loadedData = true;
+        });
+
+      } else if (apiResponse.status == Status.EXCEPTION) {
+        print("Exception!");
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          duration: Duration(seconds: 3),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+                child:
+                Icon(color: Colors.orange, size: 40, Icons.warning_outlined),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Text(
+                    "Server nicht erreichbar...\nPrüfe deine Internetverbindung!",
+                    softWrap: true,
+                    style: TextStyle(
+                      height: 0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ));
+        loadedData = true;
+      } else if (apiResponse.status == Status.ERROR) {
+        print("Error!");
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          duration: Duration(seconds: 3),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+                child: Icon(color: Colors.red, size: 40, Icons.error_outlined),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Text(
+                    "Es ist ein Serverfehler aufgetreten!",
+                    softWrap: true,
+                    style: TextStyle(
+                      height: 0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ));
+        loadedData = true;
+      }
+  }
 
   double roundDouble(double value, int places) {
     num mod = pow(10.0, places);
@@ -2626,6 +3243,38 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
+  bool checkUserInputEntnehmen() {
+
+    errorMessage = "";
+
+    if (entnehmenTextController.text.trim().isEmpty) {
+      errorMessage += "Gebe eine Menge ein!\n";
+    } else {
+      try {
+        int menge = int.parse(entnehmenTextController.text.trim());
+        if (menge < 0) {
+          errorMessage += "Die Menge darf nicht negativ sein!\n";
+        }
+        if (menge == 0) {
+          errorMessage += "Die Menge darf nicht 0 sein!\n";
+        }
+        if (menge > selectedMenge!.menge) {
+          errorMessage += "Du kannst höchstens ${selectedMenge!.menge} Artikel entnehmen!\n";
+        }
+
+      } catch (e) {
+        errorMessage += "Die Menge muss eine Zahl sein!\n";
+      }
+    }
+
+    if (errorMessage.isNotEmpty) {
+      return false;
+    } else {
+      return true;
+    }
+
+  }
+
   bool isOKMenge(ArticleDTO article) {
     for (MengeDTO m in article.mengenListe!) {
       DateTime now = DateTime.now();
@@ -2701,9 +3350,5 @@ class _MainPageState extends State<MainPage> {
     return difference;
 
   }
-
-
-
-
 
 }
