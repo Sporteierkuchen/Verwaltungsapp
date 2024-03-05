@@ -657,17 +657,24 @@ class _MainPageState extends State<MainPage> {
                           ),
                           child: GestureDetector(
                             onTap: () {
-                              // print("Ausgewählter Artikel: ${articleListSearch[index].name}");
-                              //
-                              // for( int i = 0 ; i <articleList2.length; i++ ) {
-                              //   if (articleList2[i].artikel_id == articleListSearch[index].artikel_id) {
-                              //     selectedIndex = i;
-                              //   }
-                              // }
-                              //
-                              // setState(() {
-                              //   showMengenView = true;
-                              // });
+
+                              if(loadedData){
+
+                                // print("Ausgewählter Artikel: ${articleListSearch[index].name}");
+                                //
+                                // for( int i = 0 ; i <articleList2.length; i++ ) {
+                                //   if (articleList2[i].artikel_id == articleListSearch[index].artikel_id) {
+                                //     selectedIndex = i;
+                                //   }
+                                // }
+                                //
+                                // setState(() {
+                                //   showMengenView = true;
+                                // });
+
+                              }
+
+
                             },
                             child: Card(
                                 shape: RoundedRectangleBorder(
@@ -844,27 +851,31 @@ class _MainPageState extends State<MainPage> {
                       GestureDetector(
                         onTap: () {
 
-                          try {
+                          if(loadedData){
 
-                            int menge = int.parse(mengeTextController.text);
+                            try {
 
-                            if(menge<0){
+                              int menge = int.parse(mengeTextController.text);
+
+                              if(menge<0){
+                                mengeTextController.text = "0";
+                              }
+                              else if(menge == 0){
+                              }
+                              else{
+
+                                menge--;
+                                mengeTextController.text = menge.toString();
+
+                              }
+
+                            } catch(e) {
                               mengeTextController.text = "0";
                             }
-                            else if(menge == 0){
-                            }
-                            else{
 
-                              menge--;
-                              mengeTextController.text = menge.toString();
+                            setState(() {});
 
-                            }
-
-                          } catch(e) {
-                            mengeTextController.text = "0";
                           }
-
-                          setState(() {});
 
                         },
                         child: const Icon(
@@ -914,25 +925,29 @@ class _MainPageState extends State<MainPage> {
                       GestureDetector(
                         onTap: () {
 
-                          try {
+                          if(loadedData){
 
-                            int menge = int.parse(mengeTextController.text);
+                            try {
 
-                            if(menge<0){
+                              int menge = int.parse(mengeTextController.text);
+
+                              if(menge<0){
+                                mengeTextController.text = "0";
+                              }
+                              else{
+
+                                menge++;
+                                mengeTextController.text = menge.toString();
+
+                              }
+
+                            } catch(e) {
                               mengeTextController.text = "0";
                             }
-                            else{
 
-                              menge++;
-                              mengeTextController.text = menge.toString();
+                            setState(() {});
 
-                            }
-
-                          } catch(e) {
-                            mengeTextController.text = "0";
                           }
-
-                          setState(() {});
 
                         },
                         child: const Icon(
@@ -969,13 +984,17 @@ class _MainPageState extends State<MainPage> {
                       ElevatedButton(
                         onPressed: () async {
 
-                        DateTime? pickedDate= await showDatePicker(context: context, locale: const Locale("de","DE"), firstDate: DateTime(2000), lastDate: DateTime(2050),initialDate: DateTime.now());
+                          if(loadedData){
 
-                        if(pickedDate != null){
-                          datum = pickedDate;
-                        }
+                            DateTime? pickedDate= await showDatePicker(context: context, locale: const Locale("de","DE"), firstDate: DateTime(2000), lastDate: DateTime(2050),initialDate: DateTime.now());
 
-                          setState(() {});
+                            if(pickedDate != null){
+                              datum = pickedDate;
+                            }
+
+                            setState(() {});
+
+                          }
 
                         },
                         style:
@@ -1030,15 +1049,21 @@ class _MainPageState extends State<MainPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      print("Zurück!");
-                      setState(() {
 
-                        selectedIndex = null;
-                        showMengenView = false;
-                        mengeTextController.text = "0";
-                        datum = null;
+                      if(loadedData){
 
-                      });
+                        print("Zurück!");
+                        setState(() {
+
+                          selectedIndex = null;
+                          showMengenView = false;
+                          mengeTextController.text = "0";
+                          datum = null;
+                          refresh();
+                        });
+
+                      }
+
                     },
                     style:
                     ElevatedButton.styleFrom(
@@ -1074,14 +1099,83 @@ class _MainPageState extends State<MainPage> {
                   // SizedBox(width: MediaQuery.of(context).size.width* 0.05),
 
                   ElevatedButton(
-                    onPressed: () {
-                      setState(() {
+                    onPressed: () async {
 
-                        mengeTextController.text = "0";
-                        datum = null;
+                      if(loadedData){
+                        loadedData = false;
+                        print("Hinzufügen");
+
+                        if(checkUserInputMenge()){
+
+                          MengeDTO? menge;
+
+                          for (MengeDTO m in  articleListSearch[selectedIndex!].mengenListe!) {
+
+                            DateTime mengendatum = DateTime.parse(m.datum);
+                            DateTime datumFormated = DateTime(datum!.year, datum!.month, datum!.day);
 
 
-                      });
+                            int difference = (mengendatum.difference(datumFormated).inHours / 24).round();
+
+                            if(difference == 0 ){
+                              menge = m;
+                            }
+
+                          }
+
+                          if(menge == null){
+
+                           await addMenge();
+                          }
+                          else{
+
+                          await updateMenge(menge.mengen_id!, menge.menge + int.parse(mengeTextController.text.trim()));
+
+                          }
+
+                        }
+                        else{
+
+                          print("Fehler Eingabe!");
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            duration: Duration(seconds: 3),
+                            content: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.max,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.only(
+                                      left: 5, right: 15, top: 5, bottom: 5),
+                                  child: Icon(
+                                      color: Colors.orangeAccent,
+                                      size: 40,
+                                      Icons.warning_outlined),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(5.0),
+                                    child: Text(
+                                      errorMessage,
+                                      softWrap: true,
+                                      style: const TextStyle(
+                                        height: 0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.orangeAccent,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ));
+                          loadedData = true;
+
+                        }
+
+                      }
+
                     },
                     style:
                     ElevatedButton.styleFrom(
@@ -1330,27 +1424,34 @@ class _MainPageState extends State<MainPage> {
                               ),
                               child: GestureDetector(
                                 onTap: () {
-                                  print(
-                                      "Ausgewählter Artikel: ${articleListSearch[index].name}");
 
-                                  // for (int i = 0;
-                                  //     i < articleList2.length;
-                                  //     i++) {
-                                  //   if (articleList2[i].artikel_id ==
-                                  //       articleListSearch[index].artikel_id) {
-                                  //     selectedIndex = i;
-                                  //   }
-                                  // }
+                                  if(loadedData){
 
-                                  selectedIndex = index;
+                                    print(
+                                        "Ausgewählter Artikel: ${articleListSearch[index].name}");
 
-                                  articleListSearch[selectedIndex!].mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
-                                  mengeTextController.text = "0";
-                                  datum = null;
+                                    // for (int i = 0;
+                                    //     i < articleList2.length;
+                                    //     i++) {
+                                    //   if (articleList2[i].artikel_id ==
+                                    //       articleListSearch[index].artikel_id) {
+                                    //     selectedIndex = i;
+                                    //   }
+                                    // }
 
-                                  setState(() {
-                                    showMengenView = true;
-                                  });
+                                    selectedIndex = index;
+
+                                    articleListSearch[selectedIndex!].mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
+                                    mengeTextController.text = "0";
+                                    datum = null;
+
+                                    setState(() {
+                                      showMengenView = true;
+                                    });
+
+                                  }
+
+
                                 },
                                 child: Card(
                                     shape: RoundedRectangleBorder(
@@ -2251,6 +2352,240 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
+  updateMenge(int mengen_id, int menge) async {
+
+    LiveApiRequest<MengeDTO> liveApiRequest = LiveApiRequest<MengeDTO>(
+        url: "https://artikelapp.000webhostapp.com/updateMenge.php");
+    ApiResponse apiResponse = await liveApiRequest.executePost({
+      "mengenID": mengen_id.toString(),
+      "menge": menge.toString(),
+    });
+    if (apiResponse.status == Status.SUCCESS) {
+
+        print("Menge erfolgreich geupdadet!");
+
+        for(ArticleDTO a in articleList2){
+
+        if(a.artikel_id == articleListSearch[selectedIndex!].artikel_id){
+
+          for(MengeDTO m in a.mengenListe!){
+
+            if(m.mengen_id == mengen_id){
+              m.menge = menge;
+            }
+
+          }
+
+
+        }
+
+        }
+
+
+        for (ArticleDTO ar in articleList2) {
+          int ist = 0;
+          for (MengeDTO menge in ar.mengenListe!) {
+            ist += menge.menge;
+          }
+          ar.istmenge = ist;
+        }
+
+
+        setState(() {
+
+          mengeTextController.text = "0";
+          datum = null;
+          refresh();
+          articleListSearch[selectedIndex!].mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
+
+          loadedData = true;
+        });
+
+
+    } else if (apiResponse.status == Status.EXCEPTION) {
+      print("Exception!");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+              child:
+              Icon(color: Colors.orange, size: 40, Icons.warning_outlined),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Text(
+                  "Server nicht erreichbar...\nPrüfe deine Internetverbindung!",
+                  softWrap: true,
+                  style: TextStyle(
+                    height: 0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ));
+      loadedData = true;
+    } else if (apiResponse.status == Status.ERROR) {
+      print("Error!");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+              child: Icon(color: Colors.red, size: 40, Icons.error_outlined),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Text(
+                  "Es ist ein Serverfehler aufgetreten!",
+                  softWrap: true,
+                  style: TextStyle(
+                    height: 0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ));
+      loadedData = true;
+    }
+
+  }
+
+  addMenge()  async {
+
+    LiveApiRequest<MengeDTO> liveApiRequest = LiveApiRequest<MengeDTO>(
+        url: "https://artikelapp.000webhostapp.com/addMenge.php");
+    ApiResponse apiResponse = await liveApiRequest.executePost({
+      "artikelID": articleListSearch[selectedIndex!].artikel_id.toString(),
+      "menge": mengeTextController.text.trim(),
+      "datum": DateFormat('yyyy-MM-dd').format(datum!),
+    });
+    if (apiResponse.status == Status.SUCCESS) {
+
+      print("Menge erfolgreich hinzugefügt!");
+
+      int mengen_id = int.parse(apiResponse.body!);
+
+      for(ArticleDTO a in articleList2){
+
+        if(a.artikel_id == articleListSearch[selectedIndex!].artikel_id){
+
+        a.mengenListe!.add(MengeDTO(mengen_id: mengen_id, artikel_id: articleListSearch[selectedIndex!].artikel_id! , datum: datum.toString(), menge: int.parse(mengeTextController.text.trim())));
+
+        }
+
+      }
+
+      for (ArticleDTO ar in articleList2) {
+        int ist = 0;
+        for (MengeDTO menge in ar.mengenListe!) {
+          ist += menge.menge;
+        }
+        ar.istmenge = ist;
+      }
+
+
+      setState(() {
+
+        mengeTextController.text = "0";
+        datum = null;
+        refresh();
+        articleListSearch[selectedIndex!].mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
+
+        loadedData = true;
+      });
+
+
+    } else if (apiResponse.status == Status.EXCEPTION) {
+      print("Exception!");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+              child:
+              Icon(color: Colors.orange, size: 40, Icons.warning_outlined),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Text(
+                  "Server nicht erreichbar...\nPrüfe deine Internetverbindung!",
+                  softWrap: true,
+                  style: TextStyle(
+                    height: 0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ));
+      loadedData = true;
+    } else if (apiResponse.status == Status.ERROR) {
+      print("Error!");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
+              child: Icon(color: Colors.red, size: 40, Icons.error_outlined),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Text(
+                  "Es ist ein Serverfehler aufgetreten!",
+                  softWrap: true,
+                  style: TextStyle(
+                    height: 0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ));
+      loadedData = true;
+    }
+
+  }
+
+
   double roundDouble(double value, int places) {
     num mod = pow(10.0, places);
     return ((value * mod).round().toDouble() / mod);
@@ -2346,6 +2681,37 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
+  bool checkUserInputMenge() {
+    errorMessage = "";
+
+    if (datum == null) {
+      errorMessage += "Gebe ein Datum ein!\n";
+    }
+
+    if (mengeTextController.text.trim().isEmpty) {
+      errorMessage += "Gebe eine Menge ein!\n";
+    } else {
+      try {
+        int menge = int.parse(mengeTextController.text.trim());
+        if (menge < 0) {
+          errorMessage += "Die Menge darf nicht negativ sein!\n";
+        }
+        if (menge == 0) {
+          errorMessage += "Die Menge darf nicht 0 sein!\n";
+        }
+
+      } catch (e) {
+        errorMessage += "Die Menge muss eine Zahl sein!\n";
+      }
+    }
+
+    if (errorMessage.isNotEmpty) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   bool isOKMenge(ArticleDTO article) {
     for (MengeDTO m in article.mengenListe!) {
       DateTime now = DateTime.now();
@@ -2421,6 +2787,8 @@ class _MainPageState extends State<MainPage> {
     return difference;
 
   }
+
+
 
 
 
