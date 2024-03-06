@@ -49,7 +49,14 @@ class _CustomDialogState extends State<CustomDialog> {
                       widget.isChecked[3] = false;
                       widget.isChecked[4] = false;
                     }
+
                     widget.isChecked[index] = val!;
+
+                    if(widget.isChecked[0] == false && widget.isChecked[1] == false && widget.isChecked[2] == false && widget.isChecked[3] == false && widget.isChecked[4] == false){
+
+                      widget.isChecked[0] = true;
+
+                    }
 
                   });
                 },

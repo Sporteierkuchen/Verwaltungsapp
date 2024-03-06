@@ -22,7 +22,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
 
- final List<bool> _isChecked = [true, false, false, false, false];
+ final List<bool> filterList = [true, false, false, false, false];
 
   List<ArticleDTO> articleList = [];
   List<ArticleDTO> articleListSearch = <ArticleDTO>[];
@@ -732,7 +732,7 @@ class _MainPageState extends State<MainPage> {
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(10.0),
                                             ),
-                                            margin: EdgeInsets.symmetric(vertical: 3),
+                                            margin: const EdgeInsets.symmetric(vertical: 3),
                                             color: Colors.grey,
                                             elevation: 3,
                                             child:
@@ -1896,11 +1896,15 @@ class _MainPageState extends State<MainPage> {
                               barrierDismissible: false,
                               context: context,
                               builder: (BuildContext context) {
-                                return CustomDialog(isChecked: _isChecked);
+                                return CustomDialog(isChecked: filterList);
                               },
                               );
-                            loadedData = true;
-                            print(_isChecked);
+                            print(filterList);
+
+                            setState(() {
+                              loadedData = true;
+                              refresh();
+                            });
 
                         }
                       },
@@ -2056,7 +2060,7 @@ class _MainPageState extends State<MainPage> {
                                         mainAxisSize: MainAxisSize.max,
                                         children: [
                                           Container(
-                                            padding: EdgeInsets.all(
+                                            padding: const EdgeInsets.all(
                                                 2), // Border width
                                             decoration: const BoxDecoration(
                                                 color: Colors.black,
@@ -2449,7 +2453,9 @@ class _MainPageState extends State<MainPage> {
   }
 
   void refresh() {
+
     articleListSearch.clear();
+
     for (ArticleDTO a in articleList) {
       if (a.name.toLowerCase().contains(fieldText.text.toLowerCase().trim())) {
 
@@ -2457,6 +2463,37 @@ class _MainPageState extends State<MainPage> {
 
       }
     }
+
+    if(filterList[0] == false){
+
+      if(filterList[1]){
+
+        articleListSearch.removeWhere((element) => !(element.istmenge! < element.sollmenge));
+
+      }
+
+
+      if(filterList[2]){
+
+        articleListSearch.removeWhere((element) => !isOKMenge(element));
+
+      }
+
+      if(filterList[3]){
+
+        articleListSearch.removeWhere((element) => !isWarningMenge(element));
+
+      }
+
+      if(filterList[4]){
+
+        articleListSearch.removeWhere((element) => !isAbgelaufenMenge(element));
+
+      }
+
+
+    }
+
   }
 
   void starteSuche(String value) {
@@ -2473,6 +2510,37 @@ class _MainPageState extends State<MainPage> {
 
         }
       }
+
+      if(filterList[0] == false){
+
+        if(filterList[1]){
+
+          articleListSearch.removeWhere((element) => !(element.istmenge! < element.sollmenge));
+
+        }
+
+
+        if(filterList[2]){
+
+          articleListSearch.removeWhere((element) => !isOKMenge(element));
+
+        }
+
+        if(filterList[3]){
+
+          articleListSearch.removeWhere((element) => !isWarningMenge(element));
+
+        }
+
+        if(filterList[4]){
+
+          articleListSearch.removeWhere((element) => !isAbgelaufenMenge(element));
+
+        }
+
+
+      }
+
 
       setState(() {});
     } else {
@@ -3472,7 +3540,7 @@ class _MainPageState extends State<MainPage> {
           (datumFormated.difference(nowFormated).inHours / 24).round();
       // print("Difference: $difference Warnzeit: ${article.warnzeit}");
 
-      if (article.warnzeit <= difference) {
+      if (article.warnzeit < difference) {
         return true;
       }
     }
