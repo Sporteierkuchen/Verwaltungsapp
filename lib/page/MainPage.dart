@@ -11,6 +11,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:verwaltungsapp/dto/ArticleDTO.dart';
 import '../dto/MengeDTO.dart';
 import '../util/LiveApiRequest.dart';
+import '../widget/FilterWidget.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -20,6 +21,8 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+
+ final List<bool> _isChecked = [true, false, false, false, false];
 
   List<ArticleDTO> articleList = [];
   List<ArticleDTO> articleListSearch = <ArticleDTO>[];
@@ -49,6 +52,7 @@ class _MainPageState extends State<MainPage> {
 
   String errorMessage = "";
 
+
   @override
   void initState() {
     super.initState();
@@ -77,7 +81,8 @@ class _MainPageState extends State<MainPage> {
 
               child: SingleChildScrollView(
                   physics: const NeverScrollableScrollPhysics(),
-                  child: getContent()
+                  child:
+                  getContent()
               ),
 
           ),
@@ -1762,16 +1767,14 @@ class _MainPageState extends State<MainPage> {
     else {
 
       return Container(
-        padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+        padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
         height: MediaQuery.of(context).size.height -
             MediaQuery.of(context).padding.top,
         child: Column(
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(
-              height: 30,
-            ),
+
             Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1876,8 +1879,63 @@ class _MainPageState extends State<MainPage> {
                 ),
               ],
             ),
-            const SizedBox(
-              height: 30,
+
+
+            Row(
+              children: [
+
+                Padding(
+                  padding: const EdgeInsets.only(left: 20, bottom: 20, top: 5),
+                  child: GestureDetector(
+                      onTap: () async {
+                        if (loadedData) {
+
+                            loadedData = false;
+
+                            await  showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder: (BuildContext context) {
+                                return CustomDialog(isChecked: _isChecked);
+                              },
+                              );
+                            loadedData = true;
+                            print(_isChecked);
+
+                        }
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.black
+                      ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                        child: const Row(children: [
+
+                          Icon(
+                            Icons.filter_list,
+                            size: 25,
+
+                            color: Colors.white,
+                          ),
+                          SizedBox(width: 5,),
+                          Text(
+                            "Filter",
+                            softWrap: true,
+                            style: TextStyle(
+                              height: 0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
+
+                        ],),
+                    )
+                ),
+                ),
+
+              ],
             ),
 
 
@@ -3479,3 +3537,6 @@ class _MainPageState extends State<MainPage> {
   }
 
 }
+
+
+
