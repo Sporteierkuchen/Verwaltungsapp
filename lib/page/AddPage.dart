@@ -124,7 +124,10 @@ class _AddPageState extends State<AddPage> {
                               ),
                               onPressed: () async {
                                 if (loadedData) {
-                                  loadedData = false;
+
+                                  setState(() {
+                                    loadedData = false;
+                                  });
 
                                   if (checkUserInputArticle()) {
                                     await addArticle();

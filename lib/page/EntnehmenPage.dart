@@ -414,7 +414,9 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
                             onPressed: () async {
 
                               if(loadedData){
-                                loadedData = false;
+                                setState(() {
+                                  loadedData = false;
+                                });
 
                                 if(checkUserInputEntnehmen()){
 
@@ -720,8 +722,7 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
       }
       widget.selectedArticle.istmenge = ist;
 
-      setState(() {
-      });
+      Navigator.pop(context);
 
     } else if (apiResponse.status == Status.EXCEPTION) {
       print("Exception!");

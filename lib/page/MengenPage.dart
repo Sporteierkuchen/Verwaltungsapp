@@ -159,10 +159,17 @@ class _MengenPageState extends State<MengenPage> {
                                       padding: EdgeInsets.all(5),
                                       onPressed: (value) async {
                                         if(loadedData){
-                                          loadedData = false;
+
+                                          setState(() {
+                                            loadedData = false;
+                                          });
 
                                           await deleteMenge(widget.selectedArticle.mengenListe![index]);
-                                          loadedData = true;
+
+                                          setState(() {
+                                            loadedData = true;
+                                          });
+
 
                                         }
                                       },
@@ -615,7 +622,10 @@ class _MengenPageState extends State<MengenPage> {
                           onPressed: () async {
 
                             if(loadedData){
-                              loadedData = false;
+                              setState(() {
+                                loadedData = false;
+                              });
+
                               print("Hinzufügen");
 
                               if(checkUserInputMenge()){

@@ -55,7 +55,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
        });
 
-      return Container();
+      return getLoadingPage();
     }
     else if (loadedData && loadedDataSuccessful == false  ) {
       return Scaffold(
@@ -137,29 +137,33 @@ class _LoadingPageState extends State<LoadingPage> {
             ),
           ));
     } else if(loadedData == false) {
-      return SafeArea(
-        child: Container(
-          color: Colors.white,
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: LoadingAnimationWidget.prograssiveDots(
-                  color: const Color(0xFF7B1A33),
-                  size: 100,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+        return getLoadingPage();
     }
     else{
       return Container();
     }
+  }
+
+ Widget getLoadingPage(){
+   return SafeArea(
+     child: Container(
+       color: Colors.white,
+       alignment: Alignment.center,
+       child: Column(
+         mainAxisAlignment: MainAxisAlignment.center,
+         crossAxisAlignment: CrossAxisAlignment.center,
+         children: [
+           Padding(
+             padding: const EdgeInsets.all(20.0),
+             child: LoadingAnimationWidget.prograssiveDots(
+               color: const Color(0xFF7B1A33),
+               size: 100,
+             ),
+           ),
+         ],
+       ),
+     ),
+   );
   }
 
 
