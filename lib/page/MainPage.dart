@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:verwaltungsapp/dto/ArticleDTO.dart';
 import 'package:verwaltungsapp/page/AddPage.dart';
 import 'package:verwaltungsapp/page/EditPage.dart';
+import 'package:verwaltungsapp/util/HelperUtil.dart';
 import '../dto/MengeDTO.dart';
 import '../util/LiveApiRequest.dart';
 import '../widget/FilterWidget.dart';
@@ -44,454 +45,458 @@ class _MainPageState extends State<MainPage> {
     print("Build MainPage");
     refresh();
 
-      return Scaffold(
-          resizeToAvoidBottomInset: false ,
-          body: SafeArea(
-              child:
-              Container(
-                padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
-                height: MediaQuery.of(context).size.height -
-                    MediaQuery.of(context).padding.top,
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
+      return
+        PopScope(
+          canPop: false,
+          child: Scaffold(
+            resizeToAvoidBottomInset: false ,
+            body: SafeArea(
+                child:
+                Container(
+                  padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
+                  height: MediaQuery.of(context).size.height -
+                      MediaQuery.of(context).padding.top,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
 
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          height: 50,
-                          width: MediaQuery.of(context).size.width * 0.7,
+                      Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 50,
+                            width: MediaQuery.of(context).size.width * 0.7,
 
-                          child: TextField(
-                            controller: fieldText,
-                            style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 18,
-                                decorationThickness: 0.0),
-                            textAlignVertical: TextAlignVertical.center,
-                            maxLength: 25,
-                            textInputAction: TextInputAction.search,
-                            onChanged: (value) {
-                              if (loadedData) {
-                                starteSuche(value);
-                              }
-                            },
-                            onSubmitted: (value) {
-                              if (loadedData) {
-                                starteSuche(value);
-                              }
-                            },
-                            decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.only(),
-                              filled: true,
-                              fillColor: Colors.white,
-                              counterText: "",
-                              focusedBorder: const OutlineInputBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                                borderSide: BorderSide(color: Colors.black, width: 2.0),
-                              ),
-                              enabledBorder: const OutlineInputBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                                borderSide: BorderSide(color: Colors.black, width: 2.0),
-                              ),
-                              prefixIcon: GestureDetector(
-                                onTap: () {
-                                  if (loadedData) {
-                                    starteSuche(fieldText.text);
-                                  }
-                                },
-                                child: const Icon(
-                                  Icons.search_outlined,
+                            child: TextField(
+                              controller: fieldText,
+                              style: const TextStyle(
                                   color: Colors.black,
-                                  size: 25,
+                                  fontSize: 18,
+                                  decorationThickness: 0.0),
+                              textAlignVertical: TextAlignVertical.center,
+                              maxLength: 25,
+                              textInputAction: TextInputAction.search,
+                              onChanged: (value) {
+                                if (loadedData) {
+                                  starteSuche(value);
+                                }
+                              },
+                              onSubmitted: (value) {
+                                if (loadedData) {
+                                  starteSuche(value);
+                                }
+                              },
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.only(),
+                                filled: true,
+                                fillColor: Colors.white,
+                                counterText: "",
+                                focusedBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(18.0)),
+                                  borderSide: BorderSide(color: Colors.black, width: 2.0),
                                 ),
-                              ),
-                              suffixIcon: GestureDetector(
+                                enabledBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(18.0)),
+                                  borderSide: BorderSide(color: Colors.black, width: 2.0),
+                                ),
+                                prefixIcon: GestureDetector(
                                   onTap: () {
                                     if (loadedData) {
-                                      print("Suchfeld gecleart!");
-
-                                      fieldText.clear();
-
-                                      if (widget.articleList.length !=
-                                          articleListSearch.length) {
-                                        print("Artikellisten sind ungleich");
-
-                                        refresh();
-                                      } else {
-                                        print("Artikellisten sind gleich");
-                                      }
-
-                                      setState(() {});
+                                      starteSuche(fieldText.text);
                                     }
                                   },
                                   child: const Icon(
-                                    Icons.close_outlined,
+                                    Icons.search_outlined,
                                     color: Colors.black,
-                                    size: 20,
-                                  )),
-                              hintText: "Suche...",
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 20, right: 10),
-                          child: GestureDetector(
-                              onTap: () {
-                                if (loadedData) {
-                                  print("Artikel hinzufügen!");
-
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddPage(articleList: widget.articleList),
-                                    ),
-                                  ).then((value) => setState(() {}));
-
-                                }
-                              },
-                              child: const Icon(
-                                Icons.add_circle_outline_outlined,
-                                size: 40,
-                              )),
-                        ),
-                      ],
-                    ),
-
-                    Row(
-                      children: [
-
-                        Padding(
-                          padding: const EdgeInsets.only(left: 20, bottom: 20, top: 5),
-                          child: GestureDetector(
-                              onTap: () async {
-                                if (loadedData) {
-
-                                  loadedData = false;
-
-                                  await  showDialog(
-                                    barrierDismissible: false,
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return CustomDialog(isChecked: filterList);
-                                    },
-                                  );
-                                  print(filterList);
-
-                                  setState(() {
-                                    loadedData = true;
-                                    refresh();
-                                  });
-
-                                }
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(15),
-                                    color: Colors.black
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                                child: const Row(children: [
-
-                                  Icon(
-                                    Icons.filter_list,
                                     size: 25,
-
-                                    color: Colors.white,
                                   ),
-                                  SizedBox(width: 5,),
-                                  Text(
-                                    "Filter",
-                                    softWrap: true,
-                                    style: TextStyle(
-                                      height: 0,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                    ),
-                                  ),
+                                ),
+                                suffixIcon: GestureDetector(
+                                    onTap: () {
+                                      if (loadedData) {
+                                        print("Suchfeld gecleart!");
 
-                                ],),
-                              )
-                          ),
-                        ),
+                                        fieldText.clear();
 
-                      ],
-                    ),
+                                        if (widget.articleList.length !=
+                                            articleListSearch.length) {
+                                          print("Artikellisten sind ungleich");
 
-                    Expanded(
-                      child: widget.articleList.isEmpty || articleListSearch.isEmpty
-                          ? const Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Text(
-                            "Keine Artikel vorhanden!",
-                            style: TextStyle(
-                              height: 0,
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22,
+                                          refresh();
+                                        } else {
+                                          print("Artikellisten sind gleich");
+                                        }
+
+                                        setState(() {});
+                                      }
+                                    },
+                                    child: const Icon(
+                                      Icons.close_outlined,
+                                      color: Colors.black,
+                                      size: 20,
+                                    )),
+                                hintText: "Suche...",
+                              ),
                             ),
-                          ))
-                          : SlidableAutoCloseBehavior(
-                        closeWhenOpened: true,
-                        child: ListView.builder(
-                          //  shrinkWrap: true,
-                          // physics: const ScrollPhysics(),
-                            itemCount: articleListSearch.length,
-                            itemBuilder: (context, index) {
-                              return Slidable(
-                                endActionPane: ActionPane(
-                                  extentRatio: 1,
-                                  motion: const DrawerMotion(),
-                                  children: [
-                                    SlidableAction(
-                                      autoClose: true,
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      padding: const EdgeInsets.all(5),
-                                      onPressed: (value) async {
-                                        if (loadedData) {
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20, right: 10),
+                            child: GestureDetector(
+                                onTap: () {
+                                  if (loadedData) {
+                                    print("Artikel hinzufügen!");
 
-                                          loadedData = false;
-                                          await deleteArticle(articleListSearch[index]);
-                                          loadedData = true;
-
-                                        }
-                                      },
-                                      backgroundColor: Colors.red,
-                                      foregroundColor: Colors.black,
-                                      icon: Icons.delete,
-                                      label: 'Löschen',
-                                    ),
-                                  ],
-                                ),
-                                startActionPane: ActionPane(
-                                  extentRatio: 1,
-                                  motion: const DrawerMotion(),
-                                  children: [
-                                    SlidableAction(
-                                      autoClose: true,
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      padding: const EdgeInsets.all(5),
-                                      onPressed: (value)  {
-                                        if (loadedData) {
-                                          print("Artikel bearbeiten!");
-
-
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => EditPage(selectedArticle: articleListSearch[index]),
-                                            ),
-                                          ).then((value) => setState(() {}));
-
-                                        }
-                                      },
-                                      backgroundColor: Colors.blue,
-                                      foregroundColor: Colors.black,
-                                      icon: Icons.mode_edit_outlined,
-                                      label: 'Bearbeiten',
-                                    ),
-                                  ],
-                                ),
-                                child: GestureDetector(
-                                  onTap: () {
-
-                                    if(loadedData){
-
-                                      print("Ausgewählter Artikel: ${articleListSearch[index].name}");
-
-                                      articleListSearch[index].mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
-
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => MengenPage(selectedArticle: articleListSearch[index]),
-                                        ),
-                                      ).then((value) => setState(() {}));
-
-                                    }
-
-                                  },
-                                  child: Card(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10.0),
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AddPage(articleList: widget.articleList),
                                       ),
-                                      margin: const EdgeInsets.all(5),
-                                      color: articleListSearch[index].istmenge! <
-                                          articleListSearch[index].sollmenge
-                                          ? Colors.yellow[300]
-                                          : Colors.white,
-                                      elevation: 3,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(
-                                                  2), // Border width
-                                              decoration: const BoxDecoration(
-                                                  color: Colors.black,
-                                                  shape: BoxShape.circle),
-                                              child: ClipOval(
-                                                child: SizedBox.fromSize(
-                                                  size: const Size.fromRadius(
-                                                      35), // Image radius
-                                                  child: articleListSearch[index]
-                                                      .logo
-                                                      .isEmpty
-                                                      ? Image.asset(
-                                                      "lib/images/articles/empty.png",
-                                                      fit: BoxFit.cover)
-                                                      : Image.memory(
-                                                    base64Decode(
-                                                        articleListSearch[
-                                                        index]
-                                                            .logo),
-                                                    fit: BoxFit.cover,
+                                    ).then((value) => setState(() {}));
 
-                                                    gaplessPlayback: true,
-                                                    // filterQuality: FilterQuality.high,
+                                  }
+                                },
+                                child: const Icon(
+                                  Icons.add_circle_outline_outlined,
+                                  size: 40,
+                                )),
+                          ),
+                        ],
+                      ),
+
+                      Row(
+                        children: [
+
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20, bottom: 20, top: 5),
+                            child: GestureDetector(
+                                onTap: () async {
+                                  if (loadedData) {
+
+                                    loadedData = false;
+
+                                    await  showDialog(
+                                      barrierDismissible: false,
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return CustomDialog(isChecked: filterList);
+                                      },
+                                    );
+                                    print(filterList);
+
+                                    setState(() {
+                                      loadedData = true;
+                                      refresh();
+                                    });
+
+                                  }
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
+                                      color: Colors.black
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                  child: const Row(children: [
+
+                                    Icon(
+                                      Icons.filter_list,
+                                      size: 25,
+
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(width: 5,),
+                                    Text(
+                                      "Filter",
+                                      softWrap: true,
+                                      style: TextStyle(
+                                        height: 0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+
+                                  ],),
+                                )
+                            ),
+                          ),
+
+                        ],
+                      ),
+
+                      Expanded(
+                        child: widget.articleList.isEmpty || articleListSearch.isEmpty
+                            ? const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Text(
+                              "Keine Artikel vorhanden!",
+                              style: TextStyle(
+                                height: 0,
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 22,
+                              ),
+                            ))
+                            : SlidableAutoCloseBehavior(
+                          closeWhenOpened: true,
+                          child: ListView.builder(
+                            //  shrinkWrap: true,
+                            // physics: const ScrollPhysics(),
+                              itemCount: articleListSearch.length,
+                              itemBuilder: (context, index) {
+                                return Slidable(
+                                  endActionPane: ActionPane(
+                                    extentRatio: 1,
+                                    motion: const DrawerMotion(),
+                                    children: [
+                                      SlidableAction(
+                                        autoClose: true,
+                                        borderRadius: BorderRadius.circular(10.0),
+                                        padding: const EdgeInsets.all(5),
+                                        onPressed: (value) async {
+                                          if (loadedData) {
+
+                                            loadedData = false;
+                                            await deleteArticle(articleListSearch[index]);
+                                            loadedData = true;
+
+                                          }
+                                        },
+                                        backgroundColor: Colors.red,
+                                        foregroundColor: Colors.black,
+                                        icon: Icons.delete,
+                                        label: 'Löschen',
+                                      ),
+                                    ],
+                                  ),
+                                  startActionPane: ActionPane(
+                                    extentRatio: 1,
+                                    motion: const DrawerMotion(),
+                                    children: [
+                                      SlidableAction(
+                                        autoClose: true,
+                                        borderRadius: BorderRadius.circular(10.0),
+                                        padding: const EdgeInsets.all(5),
+                                        onPressed: (value)  {
+                                          if (loadedData) {
+                                            print("Artikel bearbeiten!");
+
+
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => EditPage(selectedArticle: articleListSearch[index]),
+                                              ),
+                                            ).then((value) => setState(() {}));
+
+                                          }
+                                        },
+                                        backgroundColor: Colors.blue,
+                                        foregroundColor: Colors.black,
+                                        icon: Icons.mode_edit_outlined,
+                                        label: 'Bearbeiten',
+                                      ),
+                                    ],
+                                  ),
+                                  child: GestureDetector(
+                                    onTap: () {
+
+                                      if(loadedData){
+
+                                        print("Ausgewählter Artikel: ${articleListSearch[index].name}");
+
+                                        articleListSearch[index].mengenListe!.sort((a, b) => HelperUtil.getDifferenceDates(a.datum).compareTo(HelperUtil.getDifferenceDates(b.datum)));
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => MengenPage(selectedArticle: articleListSearch[index]),
+                                          ),
+                                        ).then((value) => setState(() {}));
+
+                                      }
+
+                                    },
+                                    child: Card(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10.0),
+                                        ),
+                                        margin: const EdgeInsets.all(5),
+                                        color: articleListSearch[index].istmenge! <
+                                            articleListSearch[index].sollmenge
+                                            ? Colors.yellow[300]
+                                            : Colors.white,
+                                        elevation: 3,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.max,
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(
+                                                    2), // Border width
+                                                decoration: const BoxDecoration(
+                                                    color: Colors.black,
+                                                    shape: BoxShape.circle),
+                                                child: ClipOval(
+                                                  child: SizedBox.fromSize(
+                                                    size: const Size.fromRadius(
+                                                        35), // Image radius
+                                                    child: articleListSearch[index]
+                                                        .logo
+                                                        .isEmpty
+                                                        ? Image.asset(
+                                                        "lib/images/articles/empty.png",
+                                                        fit: BoxFit.cover)
+                                                        : Image.memory(
+                                                      base64Decode(
+                                                          articleListSearch[
+                                                          index]
+                                                              .logo),
+                                                      fit: BoxFit.cover,
+
+                                                      gaplessPlayback: true,
+                                                      // filterQuality: FilterQuality.high,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                            const SizedBox(
-                                              width: 10,
-                                            ),
-                                            Expanded(
-                                              child: Padding(
-                                                padding:
-                                                const EdgeInsets.symmetric(
-                                                    vertical: 10),
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      articleListSearch[index]
-                                                          .name,
-                                                      style: const TextStyle(
-                                                        height: 0,
-                                                        fontWeight:
-                                                        FontWeight.bold,
-                                                        color: Colors.black,
-                                                        fontSize: 22,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(
-                                                      height: 8,
-                                                    ),
-                                                    Text(
-                                                      "Soll: ${articleListSearch[index].sollmenge}     Ist: ${articleListSearch[index].istmenge ?? 0}",
-                                                      style: const TextStyle(
-                                                        height: 0,
-                                                        fontWeight:
-                                                        FontWeight.bold,
-                                                        color: Colors.grey,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                    articleListSearch[index]
-                                                        .istmenge! <
-                                                        articleListSearch[
-                                                        index]
-                                                            .sollmenge
-                                                        ? Padding(
-                                                      padding:
-                                                      const EdgeInsets
-                                                          .only(top: 8),
-                                                      child: Text(
-                                                        "Nachzukaufen: ${articleListSearch[index].sollmenge - articleListSearch[index].istmenge!}",
-                                                        style:
-                                                        const TextStyle(
+                                              const SizedBox(
+                                                width: 10,
+                                              ),
+                                              Expanded(
+                                                child: Padding(
+                                                  padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 10),
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                    crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        articleListSearch[index]
+                                                            .name,
+                                                        style: const TextStyle(
                                                           height: 0,
                                                           fontWeight:
-                                                          FontWeight
-                                                              .bold,
-                                                          color:
-                                                          Colors.black,
-                                                          fontSize: 18,
+                                                          FontWeight.bold,
+                                                          color: Colors.black,
+                                                          fontSize: 22,
                                                         ),
                                                       ),
-                                                    )
-                                                        : Container(),
-                                                  ],
+                                                      const SizedBox(
+                                                        height: 8,
+                                                      ),
+                                                      Text(
+                                                        "Soll: ${articleListSearch[index].sollmenge}     Ist: ${articleListSearch[index].istmenge ?? 0}",
+                                                        style: const TextStyle(
+                                                          height: 0,
+                                                          fontWeight:
+                                                          FontWeight.bold,
+                                                          color: Colors.grey,
+                                                          fontSize: 16,
+                                                        ),
+                                                      ),
+                                                      articleListSearch[index]
+                                                          .istmenge! <
+                                                          articleListSearch[
+                                                          index]
+                                                              .sollmenge
+                                                          ? Padding(
+                                                        padding:
+                                                        const EdgeInsets
+                                                            .only(top: 8),
+                                                        child: Text(
+                                                          "Nachzukaufen: ${articleListSearch[index].sollmenge - articleListSearch[index].istmenge!}",
+                                                          style:
+                                                          const TextStyle(
+                                                            height: 0,
+                                                            fontWeight:
+                                                            FontWeight
+                                                                .bold,
+                                                            color:
+                                                            Colors.black,
+                                                            fontSize: 18,
+                                                          ),
+                                                        ),
+                                                      )
+                                                          : Container(),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 5),
-                                              child: Column(children: [
-                                                articleListSearch[index]
-                                                    .mengenListe!
-                                                    .isEmpty
-                                                    ? const Icon(
-                                                  Icons.star,
-                                                  color: Colors.black,
-                                                  size: 40,
-                                                )
-                                                    : Container(),
-                                                articleListSearch[index]
-                                                    .mengenListe!
-                                                    .isNotEmpty &&
-                                                    isOKMenge(
-                                                        articleListSearch[
-                                                        index])
-                                                    ? const Icon(
-                                                  Icons.check,
-                                                  color: Colors.green,
-                                                  size: 40,
-                                                )
-                                                    : Container(),
-                                                articleListSearch[index]
-                                                    .mengenListe!
-                                                    .isNotEmpty &&
-                                                    isWarningMenge(
-                                                        articleListSearch[
-                                                        index])
-                                                    ? const Icon(
-                                                  Icons.warning,
-                                                  color: Colors.orange,
-                                                  size: 40,
-                                                )
-                                                    : Container(),
-                                                articleListSearch[index]
-                                                    .mengenListe!
-                                                    .isNotEmpty &&
-                                                    isAbgelaufenMenge(
-                                                        articleListSearch[
-                                                        index])
-                                                    ? const Icon(
-                                                  Icons.error,
-                                                  color: Colors.red,
-                                                  size: 40,
-                                                )
-                                                    : Container(),
-                                              ]),
-                                            ),
-                                          ],
-                                        ),
-                                      )),
-                                ),
-                              );
-                            }),
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(
+                                                    horizontal: 5),
+                                                child: Column(children: [
+                                                  articleListSearch[index]
+                                                      .mengenListe!
+                                                      .isEmpty
+                                                      ? const Icon(
+                                                    Icons.star,
+                                                    color: Colors.black,
+                                                    size: 40,
+                                                  )
+                                                      : Container(),
+                                                  articleListSearch[index]
+                                                      .mengenListe!
+                                                      .isNotEmpty &&
+                                                      isOKMenge(
+                                                          articleListSearch[
+                                                          index])
+                                                      ? const Icon(
+                                                    Icons.check,
+                                                    color: Colors.green,
+                                                    size: 40,
+                                                  )
+                                                      : Container(),
+                                                  articleListSearch[index]
+                                                      .mengenListe!
+                                                      .isNotEmpty &&
+                                                      isWarningMenge(
+                                                          articleListSearch[
+                                                          index])
+                                                      ? const Icon(
+                                                    Icons.warning,
+                                                    color: Colors.orange,
+                                                    size: 40,
+                                                  )
+                                                      : Container(),
+                                                  articleListSearch[index]
+                                                      .mengenListe!
+                                                      .isNotEmpty &&
+                                                      isAbgelaufenMenge(
+                                                          articleListSearch[
+                                                          index])
+                                                      ? const Icon(
+                                                    Icons.error,
+                                                    color: Colors.red,
+                                                    size: 40,
+                                                  )
+                                                      : Container(),
+                                                ]),
+                                              ),
+                                            ],
+                                          ),
+                                        )),
+                                  ),
+                                );
+                              }),
+                        ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                  ],
+                      const SizedBox(
+                        height: 5,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-          ),
-      );
+            ),
+                ),
+        );
 
   }
 
@@ -701,22 +706,6 @@ class _MainPageState extends State<MainPage> {
     }
 
     return false;
-  }
-
-  int getDifferenceDates(String date) {
-
-      DateTime now = DateTime.now();
-      DateTime datum = DateTime.parse(date);
-
-      DateTime nowFormated = DateTime(now.year, now.month, now.day);
-      DateTime datumFormated = DateTime(datum.year, datum.month, datum.day);
-
-      int difference =
-      (datumFormated.difference(nowFormated).inHours / 24).round();
-      // print("Difference: $difference Warnzeit: ${article.warnzeit}");
-
-    return difference;
-
   }
 
 }

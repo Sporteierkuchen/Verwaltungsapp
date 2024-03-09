@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:verwaltungsapp/dto/ArticleDTO.dart';
 import 'package:verwaltungsapp/page/EntnehmenPage.dart';
+import 'package:verwaltungsapp/util/HelperUtil.dart';
 import '../dto/MengeDTO.dart';
 import '../util/LiveApiRequest.dart';
 
@@ -74,7 +75,7 @@ class _MengenPageState extends State<MengenPage> {
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Container(
-                                padding: EdgeInsets.all(2), // Border width
+                                padding: const EdgeInsets.all(2), // Border width
                                 decoration: const BoxDecoration(
                                     color: Colors.black, shape: BoxShape.circle),
                                 child: ClipOval(
@@ -291,7 +292,7 @@ class _MengenPageState extends State<MengenPage> {
                                                         Padding(
                                                           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                                                           child:  Text(
-                                                            DateFormat('dd.MM.yyyy').format(DateTime.parse(widget.selectedArticle.mengenListe![index].datum)),
+                                                           HelperUtil.formatDateTime(DateTime.parse(widget.selectedArticle.mengenListe![index].datum)) ,
                                                             style: const TextStyle(
                                                               height: 0,
                                                               fontWeight: FontWeight.bold,
@@ -302,7 +303,7 @@ class _MengenPageState extends State<MengenPage> {
                                                         ),
                                                       ),
 
-                                                      getDifferenceDates(widget.selectedArticle.mengenListe![index].datum) > widget.selectedArticle.warnzeit
+                                                      HelperUtil.getDifferenceDates(widget.selectedArticle.mengenListe![index].datum) > widget.selectedArticle.warnzeit
                                                           ? const Icon(
                                                         Icons.check,
                                                         color: Colors.green,
@@ -310,7 +311,7 @@ class _MengenPageState extends State<MengenPage> {
                                                       )
                                                           : Container(),
 
-                                                      getDifferenceDates(widget.selectedArticle.mengenListe![index].datum) <= widget.selectedArticle.warnzeit  &&  getDifferenceDates(widget.selectedArticle.mengenListe![index].datum) >= 0
+                                                      HelperUtil.getDifferenceDates(widget.selectedArticle.mengenListe![index].datum) <= widget.selectedArticle.warnzeit  &&   HelperUtil.getDifferenceDates(widget.selectedArticle.mengenListe![index].datum) >= 0
                                                           ? const Icon(
                                                         Icons.warning,
                                                         color: Colors.orange,
@@ -318,7 +319,7 @@ class _MengenPageState extends State<MengenPage> {
                                                       )
                                                           : Container(),
 
-                                                      getDifferenceDates(widget.selectedArticle.mengenListe![index].datum) < 0
+                                                      HelperUtil.getDifferenceDates(widget.selectedArticle.mengenListe![index].datum) < 0
                                                           ? const Icon(
                                                         Icons.error,
                                                         color: Colors.red,
@@ -801,7 +802,7 @@ class _MengenPageState extends State<MengenPage> {
 
         mengeTextController.text = "0";
         datum = null;
-        widget.selectedArticle.mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
+        widget.selectedArticle.mengenListe!.sort((a, b) =>  HelperUtil.getDifferenceDates(a.datum).compareTo( HelperUtil.getDifferenceDates(b.datum)));
 
       });
 
@@ -901,7 +902,7 @@ class _MengenPageState extends State<MengenPage> {
 
         mengeTextController.text = "0";
         datum = null;
-        widget.selectedArticle.mengenListe!.sort((a, b) => getDifferenceDates(a.datum).compareTo(getDifferenceDates(b.datum)));
+        widget.selectedArticle.mengenListe!.sort((a, b) =>  HelperUtil.getDifferenceDates(a.datum).compareTo( HelperUtil.getDifferenceDates(b.datum)));
 
       });
 
@@ -1060,23 +1061,6 @@ class _MengenPageState extends State<MengenPage> {
       ));
     }
   }
-
-  int getDifferenceDates(String date) {
-
-    DateTime now = DateTime.now();
-    DateTime datum = DateTime.parse(date);
-
-    DateTime nowFormated = DateTime(now.year, now.month, now.day);
-    DateTime datumFormated = DateTime(datum.year, datum.month, datum.day);
-
-    int difference =
-    (datumFormated.difference(nowFormated).inHours / 24).round();
-    // print("Difference: $difference Warnzeit: ${article.warnzeit}");
-
-    return difference;
-
-  }
-
 
 }
 

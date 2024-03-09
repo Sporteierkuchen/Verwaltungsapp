@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:verwaltungsapp/dto/ArticleDTO.dart';
 import '../dto/MengeDTO.dart';
+import '../util/HelperUtil.dart';
 import '../util/LiveApiRequest.dart';
 
 class EntnehmenPage extends StatefulWidget {
@@ -87,7 +87,7 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
 
                         Padding(
                           padding: const EdgeInsets.only( top: 10),
-                          child: Text(widget.selectedArticle!.name,
+                          child: Text(widget.selectedArticle.name,
                             softWrap: true,
                             maxLines: 2,
                             style: const TextStyle(
@@ -206,7 +206,7 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
                                                 Padding(
                                                   padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                                                   child:  Text(
-                                                    DateFormat('dd.MM.yyyy').format(DateTime.parse(widget.selectedMenge!.datum)),
+                                                    HelperUtil.formatDateTime(DateTime.parse(widget.selectedMenge.datum)),
                                                     style: const TextStyle(
                                                       height: 0,
                                                       fontWeight: FontWeight.bold,
@@ -217,7 +217,7 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
                                                 ),
                                               ),
 
-                                              getDifferenceDates(widget.selectedMenge!.datum) > widget.selectedArticle!.warnzeit
+                                              HelperUtil.getDifferenceDates(widget.selectedMenge.datum) > widget.selectedArticle.warnzeit
                                                   ? const Icon(
                                                 Icons.check,
                                                 color: Colors.green,
@@ -225,7 +225,7 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
                                               )
                                                   : Container(),
 
-                                              getDifferenceDates(widget.selectedMenge!.datum) <= widget.selectedArticle!.warnzeit  &&  getDifferenceDates(widget.selectedMenge!.datum) >= 0
+                                              HelperUtil.getDifferenceDates(widget.selectedMenge.datum) <= widget.selectedArticle.warnzeit  &&   HelperUtil.getDifferenceDates(widget.selectedMenge.datum) >= 0
                                                   ? const Icon(
                                                 Icons.warning,
                                                 color: Colors.orange,
@@ -233,7 +233,7 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
                                               )
                                                   : Container(),
 
-                                              getDifferenceDates(widget.selectedMenge!.datum) < 0
+                                              HelperUtil.getDifferenceDates(widget.selectedMenge.datum) < 0
                                                   ? const Icon(
                                                 Icons.error,
                                                 color: Colors.red,
@@ -286,7 +286,7 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
 
                                               int menge = int.parse(entnehmenTextController.text);
 
-                                              if(menge<0 || menge > widget.selectedMenge!.menge){
+                                              if(menge<0 || menge > widget.selectedMenge.menge){
                                                 entnehmenTextController.text = "0";
                                               }
                                               else if(menge == 0){
@@ -366,10 +366,10 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
 
                                               int menge = int.parse(entnehmenTextController.text);
 
-                                              if(menge<0 || menge > widget.selectedMenge!.menge){
+                                              if(menge<0 || menge > widget.selectedMenge.menge){
                                                 entnehmenTextController.text = "0";
                                               }
-                                              else if(menge == widget.selectedMenge!.menge){
+                                              else if(menge == widget.selectedMenge.menge){
                                               }
                                               else{
 
@@ -561,10 +561,6 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
                           ),
                         ),
 
-
-                        // SizedBox(width: MediaQuery.of(context).size.width* 0.05),
-
-
                       ],
                     ),
                   ),
@@ -594,8 +590,8 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
         if (menge == 0) {
           errorMessage += "Die Menge darf nicht 0 sein!\n";
         }
-        if (menge > widget.selectedMenge!.menge) {
-          errorMessage += "Du kannst höchstens ${widget.selectedMenge!.menge} Artikel entnehmen!\n";
+        if (menge > widget.selectedMenge.menge) {
+          errorMessage += "Du kannst höchstens ${widget.selectedMenge.menge} Artikel entnehmen!\n";
         }
 
       } catch (e) {
@@ -789,23 +785,6 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
       ));
     }
   }
-
-  int getDifferenceDates(String date) {
-
-    DateTime now = DateTime.now();
-    DateTime datum = DateTime.parse(date);
-
-    DateTime nowFormated = DateTime(now.year, now.month, now.day);
-    DateTime datumFormated = DateTime(datum.year, datum.month, datum.day);
-
-    int difference =
-    (datumFormated.difference(nowFormated).inHours / 24).round();
-    // print("Difference: $difference Warnzeit: ${article.warnzeit}");
-
-    return difference;
-
-  }
-
 
 }
 
