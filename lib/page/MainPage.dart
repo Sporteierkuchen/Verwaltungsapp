@@ -513,6 +513,8 @@ class _MainPageState extends State<MainPage> {
       }
     }
 
+
+
     if(filterList[0] == false){
 
       if(filterList[1]){
@@ -542,6 +544,8 @@ class _MainPageState extends State<MainPage> {
 
 
     }
+
+    articleListSearch.sort((a, b) => a.name.trim().toLowerCase().compareTo(b.name.trim().toLowerCase()));
 
   }
 

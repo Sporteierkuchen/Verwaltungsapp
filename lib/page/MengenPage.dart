@@ -662,7 +662,7 @@ class _MengenPageState extends State<MengenPage> {
 
                                 print("Fehler Eingabe!");
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                  duration: Duration(seconds: 3),
+                                  duration: const Duration(seconds: 3),
                                   content: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     mainAxisSize: MainAxisSize.max,
