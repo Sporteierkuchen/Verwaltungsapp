@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:verwaltungsapp/page/MainPage.dart';
+import 'package:verwaltungsapp/page/LoadingPage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
@@ -51,7 +51,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const MainPage(),
+      home: const LoadingPage(),
+
     );
   }
 }
