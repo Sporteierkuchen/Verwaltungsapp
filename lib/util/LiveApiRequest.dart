@@ -1,9 +1,6 @@
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'dart:developer';
-
 import 'package:http/http.dart' as http;
-
 
 typedef SuccessFunction = Function(String? response);
 typedef ErrorFunction = Function(String error, int responseCode);
