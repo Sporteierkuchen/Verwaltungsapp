@@ -1,5 +1,9 @@
 import 'package:decimal/decimal.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+
+import '../Klassen/Meldung.dart';
+import '../widget/Toast.dart';
 
 class HelperUtil {
 
@@ -19,6 +23,27 @@ class HelperUtil {
     // print("Difference: $difference Warnzeit: ${article.warnzeit}");
 
     return difference;
+  }
+
+  static void getToast(
+      {
+        required Meldung meldung,
+        required BuildContext context
+      })
+  {
+    if (meldung.meldungsart == Meldungsart.SUCCESS) {
+      showSuccess(context, meldung.text);
+    }
+    else if (meldung.meldungsart == Meldungsart.INFO) {
+      showInfo(context, meldung.text);
+    }
+    else if (meldung.meldungsart == Meldungsart.WARNING) {
+      showWarning(context, meldung.text);
+    }
+    else if (meldung.meldungsart == Meldungsart.ERROR) {
+      showError(context, meldung.text);
+    }
+
   }
 
 

@@ -1,15 +1,19 @@
-import 'dart:convert';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:verwaltungsapp/dto/ArticleDTO.dart';
-import '../util/LiveApiRequest.dart';
+import 'package:uuid/uuid.dart';
+import '../Klassen/Meldung.dart';
+import '../util/HelperUtil.dart';
+import '../widget/TextInput.dart' as Textfeld;
 
 class EditPage extends StatefulWidget {
-  final ArticleDTO selectedArticle;
-  const EditPage({Key? key,  required this.selectedArticle}) : super(key: key);
+
+  final String articleId;
+  const EditPage({Key? key,required this.articleId}) : super(key: key);
 
   @override
   State<EditPage> createState() => _EditPageState();
@@ -19,10 +23,11 @@ class _EditPageState extends State<EditPage> {
 
   bool loadedData = true;
 
-  String image = "";
   final nameTextController = TextEditingController();
   final sollmengeTextController = TextEditingController();
   final warnzeitTextController = TextEditingController();
+
+  CroppedFile? file;
 
   String errorMessage = "";
 
@@ -30,11 +35,6 @@ class _EditPageState extends State<EditPage> {
   void initState() {
     super.initState();
     print("Init State Edit-Page");
-
-    image = widget.selectedArticle.logo;
-    nameTextController.text = widget.selectedArticle.name;
-    sollmengeTextController.text = widget.selectedArticle.sollmenge.toString();
-    warnzeitTextController.text = widget.selectedArticle.warnzeit.toString();
 
   }
 
@@ -47,6 +47,8 @@ class _EditPageState extends State<EditPage> {
   @override
   Widget build(BuildContext context) {
 
+    print("Build EditPage");
+
     return
 
      PopScope(
@@ -56,18 +58,58 @@ class _EditPageState extends State<EditPage> {
         body: SafeArea(
           child:
 
-          Container(
-            color: Colors.transparent,
-            height: MediaQuery.of(context).size.height -
-                MediaQuery.of(context).padding.top,
+          StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance.
+            collection('Article').doc(widget.articleId).snapshots(),
 
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+            builder: (context, snapshot) {
+
+              if (snapshot.hasError) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Error: ${snapshot.error}',
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.red)),
+                );
+              }
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.only(left: 10, right: 10, bottom: 20),
+                  child: CircularProgressIndicator(color: Colors.red,),
+                );
+              }
+
+              DocumentSnapshot<Object?>? article;
+
+              // Prüfen, ob das Dokument existiert
+              if (!snapshot.hasData || !snapshot.data!.exists) {
+                print("Artikel wurde gelöscht!");
+
+                // Navigator.pop aufrufen, wenn das Dokument nicht existiert
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
+                });
+
+              }
+              else{
+
+                article =snapshot.data;
+
+                nameTextController.text= article!['name'];
+                sollmengeTextController.text= article['sollmenge'].toString();
+                warnzeitTextController.text= article['warnzeit'].toString();
+              }
+
+              return
+
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 25),
                       child: Text(
@@ -83,404 +125,285 @@ class _EditPageState extends State<EditPage> {
                       height: 12,
                     ),
 
-                    Expanded(child: getAddArticleView()),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        // mainAxisAlignment:
-                        // MainAxisAlignment.spaceBetween,
+                    Container(
+                      color: Colors.transparent,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          ElevatedButton.icon(
-                            style: ButtonStyle(
-                              backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.grey),
-                              foregroundColor:
-                              MaterialStateProperty.all<Color>(Colors.black),
-                              overlayColor: MaterialStateProperty.resolveWith<Color>(
-                                    (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.pressed)) {
-                                    return Colors
-                                        .greenAccent; // Change this to desired press color
-                                  }
-                                  return Colors
-                                      .greenAccent; // Change this to desired press color
-                                },
-                              ),
-                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: const BorderSide(
-                                      color:
-                                      Color(0xFF222222)), // Border color and width
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                                color: Colors.black, shape: BoxShape.circle),
+                            child: ClipOval(
+                              child: SizedBox.fromSize(
+                                size: const Size.fromRadius(100), // Image radius
+                                child:
+
+                                article!=null ?
+
+                                article['logopath'].isNotEmpty
+                                    ?
+                                Image.network(
+                                  article['logopath'],
+                                  fit: BoxFit.cover,
+                                  gaplessPlayback: true,
+                                  // filterQuality: FilterQuality.high,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    // Leeres Bild oder alternative UI-Komponente im Fehlerfall anzeigen
+                                    return Image.asset(
+                                      "lib/images/articles/empty.png",
+                                      fit: BoxFit.cover,
+                                    );
+                                  },
+
+                                  )
+                                    : Image.asset(
+                                  "lib/images/articles/empty.png",
+                                  fit: BoxFit.cover,
+                                )
+                                :
+                                Image.asset(
+                                  "lib/images/articles/empty.png",
+                                  fit: BoxFit.cover,
                                 ),
+
                               ),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  const EdgeInsets.all(5)),
-                              textStyle: MaterialStateProperty.all<TextStyle>(
-                                const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              // Flutter doesn't support transitions for state changes; you'd use animations for that.
                             ),
-                            onPressed: () async {
-                              if (loadedData) {
-
-                                setState(() {
-                                  loadedData = false;
-                                });
-
-
-                                if (checkUserInputArticle()) {
-                                  await updateArticle(widget.selectedArticle.artikel_id!);
-                                } else {
-
-                                  print("Fehler Eingabe!");
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                    duration: const Duration(seconds: 3),
-                                    content: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      mainAxisSize: MainAxisSize.max,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Padding(
-                                          padding: EdgeInsets.only(
-                                              left: 5, right: 15, top: 5, bottom: 5),
-                                          child: Icon(
-                                              color: Colors.orangeAccent,
-                                              size: 40,
-                                              Icons.warning_outlined),
-                                        ),
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(5.0),
-                                            child: Text(
-                                              errorMessage,
-                                              softWrap: true,
-                                              style: const TextStyle(
-                                                height: 0,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.orangeAccent,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ));
-
-
-                                }
-
-                                setState(() {
-                                  loadedData = true;
-                                });
-
-                              }
-                            },
-                            label: const Text("Speichern"),
-                            icon: const Icon(Icons.save),
                           ),
-                          const SizedBox(
-                            width: 50,
-                          ),
-                          ElevatedButton.icon(
-                            style: ButtonStyle(
-                              backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.grey),
-                              foregroundColor:
-                              MaterialStateProperty.all<Color>(Colors.black),
-                              overlayColor: MaterialStateProperty.resolveWith<Color>(
-                                    (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.pressed)) {
-                                    return Colors
-                                        .redAccent; // Change this to desired press color
-                                  }
-                                  return Colors
-                                      .redAccent; // Change this to desired press color
-                                },
-                              ),
-                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: const BorderSide(
-                                      color:
-                                      Color(0xFF222222)), // Border color and width
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10, right: 20),
+                                child: GestureDetector(
+                                  onTap: () async {
+
+                                    if (loadedData) {
+
+                                      await pickImage(ImageSource.gallery);
+                                      await uploadProfileImage(file,article!['logopath']);
+
+                                    }
+
+                                  },
+                                  child: Container(
+                                      color: Colors.grey,
+                                      child: const Row(
+                                        children: [
+                                          Icon(Icons.edit_outlined),
+                                          Icon(Icons.image_outlined),
+                                        ],
+                                      )),
                                 ),
                               ),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  const EdgeInsets.all(5)),
-                              textStyle: MaterialStateProperty.all<TextStyle>(
-                                const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10),
+                                child: GestureDetector(
+                                  onTap: () async {
+
+                                    if (loadedData) {
+
+                                      await pickImage(ImageSource.camera);
+                                      await uploadProfileImage(file,article!['logopath']);
+
+                                    }
+
+                                  },
+                                  child: Container(
+                                      color: Colors.grey,
+                                      child: const Row(
+                                        children: [
+                                          Icon(Icons.edit_outlined),
+                                          Icon(Icons.camera_alt_outlined),
+                                        ],
+                                      )),
                                 ),
                               ),
-                              // Flutter doesn't support transitions for state changes; you'd use animations for that.
-                            ),
-                            onPressed: () {
-                              if (loadedData) {
-                                print("Abbrechen!");
-
-                                image = "";
-                                nameTextController.text = "";
-                                sollmengeTextController.text = "";
-                                warnzeitTextController.text = "";
-
-                                Navigator.pop(context);
-
-                              }
-                            },
-                            label: Text("Abbrechen"),
-                            icon: const Icon(Icons.cancel_outlined),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          ) ,
 
+                    const SizedBox(
+                      height: 30,
+                    ),
+
+                    SizedBox(
+                      width: 300,
+                      height: 50,
+                      child: Textfeld.TextInput(
+                        label: "Artikelname",
+                        obscureText: false,
+                        controller:
+                        nameTextController,
+                        icon:
+                        const Icon(Icons.list_alt_outlined),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    SizedBox(
+                      width: 300,
+                      height: 50,
+                      child: Textfeld.TextInput(
+                        label: "Sollmenge",
+                        obscureText: false,
+                        controller:
+                        sollmengeTextController,
+                        icon:
+                        const Icon(Icons.add),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    SizedBox(
+                      width: 300,
+                      height: 50,
+                      child: Textfeld.TextInput(
+                        label: "Warnzeit in Tagen",
+                        obscureText: false,
+                        controller:
+                        warnzeitTextController,
+                        icon:
+                        const Icon(Icons.timer_rounded),
+                      ),
+                    ),
+
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+
+                            ElevatedButton(
+                              onPressed: () async {
+
+                                if (loadedData) {
+
+                                  setState(() {
+                                    loadedData = false;
+                                  });
+
+                                  if (checkUserInputArticle()) {
+
+                                    if(await editArticle()){
+                                      file= null;
+                                      nameTextController.text="";
+                                      sollmengeTextController.text="";
+                                      warnzeitTextController.text="";
+
+                                      Navigator.pop(context);
+                                    }
+
+                                  } else {
+                                    print("Fehler Eingabe!");
+                                    HelperUtil.getToast(
+                                        meldung: Meldung(
+                                            meldungsart: Meldungsart.WARNING,
+                                            text: errorMessage),
+                                        context: context);
+                                  }
+
+                                  setState(() {
+                                    loadedData = true;
+                                  });
+
+                                }
+
+                              },
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.black,
+                                backgroundColor: Colors.green,
+                                side: const BorderSide(
+                                    color: Colors.black, width: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                // Text Color (Foreground color)
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.save),
+                                  Text(
+                                    'Speichern',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(
+                              width: 50,
+                            ),
+
+                            ElevatedButton(
+                              onPressed: () async {
+
+                                if (loadedData) {
+                                  print("Abbrechen!");
+
+                                  file = null;
+                                  nameTextController.text = "";
+                                  sollmengeTextController.text = "";
+                                  warnzeitTextController.text = "";
+
+                                  Navigator.pop(context);
+
+                                }
+
+                              },
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.black,
+                                backgroundColor: Colors.red,
+                                side: const BorderSide(
+                                    color: Colors.black, width: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                // Text Color (Foreground color)
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.cancel_outlined),
+                                  Text(
+                                    'Abbrechen',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  ],
+                );
+
+            },
+          ),
         ),
             ),
       );
 
-  }
-
-  Widget getAddArticleView() {
-    return Column(
-      children: [
-        Container(
-          color: Colors.transparent,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.all(3),
-                decoration: const BoxDecoration(
-                    color: Colors.black, shape: BoxShape.circle),
-                child: ClipOval(
-                  child: SizedBox.fromSize(
-                    size: const Size.fromRadius(100), // Image radius
-                    child: image.isNotEmpty
-                        ? Image.memory(
-                      base64Decode(image),
-                      fit: BoxFit.cover,
-
-                      gaplessPlayback: true,
-                      // filterQuality: FilterQuality.high,
-                    )
-                        : Image.asset(
-                      "lib/images/articles/empty.png",
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10, right: 20),
-                    child: GestureDetector(
-                      onTap: () {
-                        pickImage();
-                      },
-                      child: Container(
-                          color: Colors.grey,
-                          child: const Row(
-                            children: [
-                              Icon(Icons.edit_outlined),
-                              Icon(Icons.image_outlined),
-                            ],
-                          )),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: GestureDetector(
-                      onTap: () {
-                        pickImageC();
-                      },
-                      child: Container(
-                          color: Colors.grey,
-                          child: const Row(
-                            children: [
-                              Icon(Icons.edit_outlined),
-                              Icon(Icons.camera_alt_outlined),
-                            ],
-                          )),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(
-          height: 30,
-        ),
-        Row(
-          children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.35,
-              child: const Padding(
-                padding: EdgeInsets.only(right: 5),
-                child: Text(
-                  "Artikelname" + ":",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.48,
-              height: 30,
-              child: TextField(
-                controller: nameTextController,
-                style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal),
-                textAlignVertical: TextAlignVertical.center,
-                maxLength: 25,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.only(),
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                  counterText: "",
-                  focusedBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                    borderSide:
-                    BorderSide(color: Colors.transparent, width: 0.0),
-                  ),
-                  enabledBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                    borderSide:
-                    BorderSide(color: Colors.transparent, width: 0.0),
-                  ),
-                  hintText: "Artikelname" + "...",
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        Row(
-          children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.35,
-              child: const Padding(
-                padding: EdgeInsets.only(right: 5),
-                child: Text(
-                  "Sollmenge" + ":",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.48,
-              height: 30,
-              child: TextField(
-                controller: sollmengeTextController,
-                style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal),
-                textAlignVertical: TextAlignVertical.center,
-                maxLength: 25,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.only(),
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                  counterText: "",
-                  focusedBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                    borderSide:
-                    BorderSide(color: Colors.transparent, width: 0.0),
-                  ),
-                  enabledBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                    borderSide:
-                    BorderSide(color: Colors.transparent, width: 0.0),
-                  ),
-                  hintText: "Sollmenge" + "...",
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.35,
-              child: const Padding(
-                padding: EdgeInsets.only(right: 5),
-                child: Text(
-                  "Warnzeit in Tagen" + ":",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.48,
-              height: 30,
-              child: TextField(
-                controller: warnzeitTextController,
-                style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal),
-                textAlignVertical: TextAlignVertical.center,
-                // maxLength: 25,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.only(),
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                  counterText: "",
-                  focusedBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                    borderSide:
-                    BorderSide(color: Colors.transparent, width: 0.0),
-                  ),
-                  enabledBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                    borderSide:
-                    BorderSide(color: Colors.transparent, width: 0.0),
-                  ),
-                  hintText: "Warnzeit in Tagen" + "...",
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
   }
 
   bool checkUserInputArticle() {
@@ -523,180 +446,121 @@ class _EditPageState extends State<EditPage> {
     }
   }
 
-  updateArticle(int articleID) async {
-    LiveApiRequest<ArticleDTO> liveApiRequest = LiveApiRequest<ArticleDTO>(
-        url: "https://artikelapp.000webhostapp.com/updateArticle.php");
-    ApiResponse apiResponse = await liveApiRequest.executePost({
-      "articleID": articleID.toString(),
-      "logo": image,
-      "name": nameTextController.text.trim(),
-      "sollmenge": sollmengeTextController.text.trim(),
-      "warnzeit": warnzeitTextController.text.trim(),
-    });
-    if (apiResponse.status == Status.SUCCESS) {
-      if (apiResponse.body?.compareTo("{\"Hat geklappt:\":true}") == 0) {
-        print("Artikel erfolgreich geupdadet!");
-
-        widget.selectedArticle.logo = image;
-        widget.selectedArticle.name = nameTextController.text.trim();
-        widget.selectedArticle.sollmenge = int.parse(sollmengeTextController.text.trim());
-        widget.selectedArticle.warnzeit = int.parse(warnzeitTextController.text.trim());
-
-        image = "";
-        nameTextController.text = "";
-        sollmengeTextController.text = "";
-        warnzeitTextController.text = "";
-
-        Navigator.pop(context);
-
-      } else {
-        print("Unbekannter Fehler!");
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          duration: Duration(seconds: 3),
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
-                child: Icon(color: Colors.blue, size: 40, Icons.info_outlined),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(5.0),
-                  child: Text(
-                    "Ein Fehler ist aufgetreten!\nEs liegt warscheinlich an dem ausgewählten Artikelbild...\nVersuche es daher mit einem anderen Bild!",
-                    softWrap: true,
-                    style: TextStyle(
-                      height: 0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ));
-      }
-    } else if (apiResponse.status == Status.EXCEPTION) {
-      print("Exception!");
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        duration: Duration(seconds: 3),
-        content: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
-              child:
-              Icon(color: Colors.orange, size: 40, Icons.warning_outlined),
-            ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(5.0),
-                child: Text(
-                  "Server nicht erreichbar...\nPrüfe deine Internetverbindung!",
-                  softWrap: true,
-                  style: TextStyle(
-                    height: 0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ));
-    } else if (apiResponse.status == Status.ERROR) {
-      print("Error!");
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        duration: Duration(seconds: 3),
-        content: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
-              child: Icon(color: Colors.red, size: 40, Icons.error_outlined),
-            ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(5.0),
-                child: Text(
-                  "Es ist ein Serverfehler aufgetreten!",
-                  softWrap: true,
-                  style: TextStyle(
-                    height: 0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ));
-    }
-  }
-
-  Future pickImage() async {
+  Future pickImage(ImageSource source) async {
     if (loadedData) {
       try {
         final image =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+        await ImagePicker().pickImage(source: source);
 
         if (image == null) return;
 
-        File? imgcrop = await _cropImage(imageFile: File(image.path));
+        CroppedFile? imgcrop = await _cropImage(imageFile: File(image.path));
         if (imgcrop == null) return;
 
         setState(() {
-          List<int> imageBytes = File(imgcrop.path).readAsBytesSync();
-          this.image = base64Encode(imageBytes);
+          file = imgcrop;
         });
+
       } on PlatformException catch (e) {
         print('Failed to pick image: $e');
       }
     }
   }
 
-  Future pickImageC() async {
-    if (loadedData) {
-      try {
-        final image = await ImagePicker().pickImage(source: ImageSource.camera);
-
-        if (image == null) return;
-
-        File? imgcrop = await _cropImage(imageFile: File(image.path));
-        if (imgcrop == null) return;
-
-        setState(() {
-          List<int> imageBytes = File(imgcrop.path).readAsBytesSync();
-          this.image = base64Encode(imageBytes);
-        });
-      } on PlatformException catch (e) {
-        print('Failed to pick image: $e');
-      }
-    }
-  }
-
-  Future<File?> _cropImage({required File imageFile}) async {
+  Future<CroppedFile?> _cropImage({required File imageFile}) async {
     CroppedFile? croppedImage = await ImageCropper().cropImage(
         sourcePath: imageFile.path,
         cropStyle: CropStyle.circle,
         aspectRatioPresets: const [CropAspectRatioPreset.original]);
     if (croppedImage == null) return null;
-    return File(croppedImage.path);
+    return croppedImage;
   }
 
+  Future<void> uploadProfileImage(CroppedFile? imageFile, String logopath) async {
+
+    if(imageFile == null){
+      return;
+    }
+
+    try {
+
+      if(logopath.isNotEmpty){
+
+        final storageRef = FirebaseStorage.instance.refFromURL(logopath);
+        await storageRef.delete();
+
+      }
+
+      // Generate a unique ID for the video
+      String uniqueId = const Uuid().v4();
+
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('article_pictures')
+          .child('$uniqueId.jpg');
+
+      await ref.putFile(File(imageFile.path));
+
+      // Holen der Download-URL
+      final downloadUrl = await ref.getDownloadURL();
+
+      await FirebaseFirestore.instance.collection('Article').doc(widget.articleId).update({
+        'logopath': downloadUrl,
+      });
+
+      file= null;
+
+      print("Artikelbild erfolgreich bearbeitet.");
+      HelperUtil.getToast(
+        meldung: Meldung(
+            meldungsart: Meldungsart.SUCCESS,
+            text: "Das Artikelbild wurde erfolgreich bearbeitet!"),
+        context: context,
+      );
+
+    } catch (e) {
+      print('Fehler beim Bearbeiten des Artikelbildes: $e');
+      HelperUtil.getToast(
+        meldung: Meldung(
+            meldungsart: Meldungsart.ERROR,
+            text: "Fehler beim Bearbeiten des Artikelbildes: ${e.toString()}"),
+        context: context,
+      );
+    }
+
+  }
+
+  Future<bool> editArticle() async {
+    try {
+
+      await FirebaseFirestore.instance.collection('Article').doc(widget.articleId).update({
+
+        'name': nameTextController.text.trim(), // Titel des Videos
+        'sollmenge': int.parse(sollmengeTextController.text.trim()),
+        'warnzeit': int.parse(warnzeitTextController.text.trim()),
+
+      });
+
+      print("Artikel erfolgreich bearbeitet.");
+      HelperUtil.getToast(
+        meldung: Meldung(
+            meldungsart: Meldungsart.SUCCESS,
+            text: "Der Artikel wurde erfolgreich bearbeitet!"),
+        context: context,
+      );
+
+      return true;
+    } catch (e) {
+      print("Fehler beim Bearbeiten des Artikels: $e");
+      HelperUtil.getToast(
+        meldung: Meldung(
+            meldungsart: Meldungsart.ERROR,
+            text: "Fehler beim Bearbeiten des Artikels: ${e.toString()}"),
+        context: context,
+      );
+      return false;
+    } finally {}
+  }
 
  }
 

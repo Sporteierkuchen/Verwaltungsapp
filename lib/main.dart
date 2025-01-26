@@ -1,11 +1,16 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:verwaltungsapp/page/LoadingPage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:verwaltungsapp/page/MainPage.dart';
 
-void main() {
+Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
@@ -51,8 +56,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const LoadingPage(),
-
+      home:
+      //const LoadingPage(),
+        const MainPage()
     );
   }
 }

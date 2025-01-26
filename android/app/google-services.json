@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "805162826639",
+    "project_id": "verwaltungsapp",
+    "storage_bucket": "verwaltungsapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:805162826639:android:6ccb70d00141cd4d6069fa",
+        "android_client_info": {
+          "package_name": "com.example.verwaltungsapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyFvdmO7Ym_kpWexkSVopTH-YAN504dr4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

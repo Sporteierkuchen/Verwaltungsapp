@@ -46,12 +46,12 @@ class _LoadingPageState extends State<LoadingPage> {
 
        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MainPage(articleList: articleList),
-          ),
-        );
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => MainPage(articleList: articleList),
+        //   ),
+        // );
 
        });
 
@@ -155,7 +155,7 @@ class _LoadingPageState extends State<LoadingPage> {
          children: [
            Padding(
              padding: const EdgeInsets.all(20.0),
-             child: LoadingAnimationWidget.prograssiveDots(
+             child: LoadingAnimationWidget.progressiveDots(
                color: const Color(0xFF7B1A33),
                size: 100,
              ),
