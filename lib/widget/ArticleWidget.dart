@@ -6,6 +6,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../Klassen/Meldung.dart';
 import '../page/EditPage.dart';
+import '../page/MengenPage.dart';
 import '../util/HelperUtil.dart';
 import 'Bestätigung.dart';
 
@@ -139,16 +140,14 @@ class _ArticleWidgetState extends State<ArticleWidget> {
 
                 if(loadedData){
 
-                  // print("Ausgewählter Artikel: ${articleListSearch[index].name}");
-                  //
-                  // articleListSearch[index].mengenListe!.sort((a, b) => HelperUtil.getDifferenceDates(a.datum).compareTo(HelperUtil.getDifferenceDates(b.datum)));
-                  //
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => MengenPage(selectedArticle: articleListSearch[index]),
-                  //   ),
-                  // ).then((value) => setState(() {}));
+                  print("Ausgewählter Artikel: ${widget.article['name']}");
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MengenPage(articleId: widget.article.id),
+                    ),
+                  );
 
                 }
 
