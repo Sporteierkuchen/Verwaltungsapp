@@ -323,23 +323,39 @@ class _ArticleWidgetState extends State<ArticleWidget> {
 
       }
 
+      // Abfrage: Hole alle Mengen mit der spezifischen Artikel-ID
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection("Menge") // Name der Sammlung
+          .where("artikelId", isEqualTo: articleId)
+          .get();
+
+      // Iteriere über die Ergebnisse und lösche jedes Dokument
+      for (var doc in querySnapshot.docs) {
+        await doc.reference.delete();
+      }
+
       DocumentReference articleDoc = FirebaseFirestore.instance.collection('Article').doc(articleId);
       await articleDoc.delete();
 
-      HelperUtil.getToast(
-        meldung: Meldung(
-            meldungsart: Meldungsart.SUCCESS,
-            text: "Der Artikel wurde gelöscht!"),
-        context: context,
-      );
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+              meldungsart: Meldungsart.SUCCESS,
+              text: "Der Artikel wurde gelöscht!"),
+          context: context,
+        );
+      }
 
     } catch (e) {
-      HelperUtil.getToast(
-        meldung: Meldung(
-            meldungsart: Meldungsart.ERROR,
-            text: "Fehler beim Löschen des Artikels!"),
-        context: context,
-      );
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+              meldungsart: Meldungsart.ERROR,
+              text: "Fehler beim Löschen des Artikels!"),
+          context: context,
+        );
+      }
+
       print("Fehler beim Löschen des Artikels: $e");
     }
 

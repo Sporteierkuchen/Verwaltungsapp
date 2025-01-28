@@ -10,7 +10,6 @@ import '../util/HelperUtil.dart';
 import 'package:uuid/uuid.dart';
 import '../widget/TextInput.dart' as Textfeld;
 
-
 class AddPage extends StatefulWidget {
   const AddPage({Key? key}) : super(key: key);
 
@@ -388,7 +387,6 @@ class _AddPageState extends State<AddPage> {
     }
   }
 
-
   Future<CroppedFile?> _cropImage({required File imageFile}) async {
     CroppedFile? croppedImage = await ImageCropper().cropImage(
         sourcePath: imageFile.path,
@@ -441,23 +439,29 @@ class _AddPageState extends State<AddPage> {
       });
 
       print("Artikel erfolgreich hochgeladen.");
-      HelperUtil.getToast(
-        meldung: Meldung(
-            meldungsart: Meldungsart.SUCCESS,
-            text: "Der Artikel wurde erfolgreich hochgeladen!"),
-        context: context,
-      );
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+              meldungsart: Meldungsart.SUCCESS,
+              text: "Der Artikel wurde erfolgreich hochgeladen!"),
+          context: context,
+        );
+      }
 
       return true;
     } catch (e) {
       print("Fehler beim Hochladen des Artikels: $e");
-      HelperUtil.getToast(
-        meldung: Meldung(
-            meldungsart: Meldungsart.ERROR,
-            text: "Fehler beim Upload des Artikels: ${e.toString()}"),
-        context: context,
-      );
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+              meldungsart: Meldungsart.ERROR,
+              text: "Fehler beim Upload des Artikels: ${e.toString()}"),
+          context: context,
+        );
+      }
+
       return false;
     } finally {}
   }
+
 }

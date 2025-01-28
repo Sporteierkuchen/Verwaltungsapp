@@ -511,21 +511,26 @@ class _EditPageState extends State<EditPage> {
       file= null;
 
       print("Artikelbild erfolgreich bearbeitet.");
-      HelperUtil.getToast(
-        meldung: Meldung(
-            meldungsart: Meldungsart.SUCCESS,
-            text: "Das Artikelbild wurde erfolgreich bearbeitet!"),
-        context: context,
-      );
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+              meldungsart: Meldungsart.SUCCESS,
+              text: "Das Artikelbild wurde erfolgreich bearbeitet!"),
+          context: context,
+        );
+      }
 
     } catch (e) {
       print('Fehler beim Bearbeiten des Artikelbildes: $e');
-      HelperUtil.getToast(
-        meldung: Meldung(
-            meldungsart: Meldungsart.ERROR,
-            text: "Fehler beim Bearbeiten des Artikelbildes: ${e.toString()}"),
-        context: context,
-      );
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+              meldungsart: Meldungsart.ERROR,
+              text: "Fehler beim Bearbeiten des Artikelbildes: ${e.toString()}"),
+          context: context,
+        );
+      }
+
     }
 
   }
@@ -542,22 +547,27 @@ class _EditPageState extends State<EditPage> {
       });
 
       print("Artikel erfolgreich bearbeitet.");
-      HelperUtil.getToast(
-        meldung: Meldung(
-            meldungsart: Meldungsart.SUCCESS,
-            text: "Der Artikel wurde erfolgreich bearbeitet!"),
-        context: context,
-      );
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+              meldungsart: Meldungsart.SUCCESS,
+              text: "Der Artikel wurde erfolgreich bearbeitet!"),
+          context: context,
+        );
+      }
 
       return true;
     } catch (e) {
       print("Fehler beim Bearbeiten des Artikels: $e");
-      HelperUtil.getToast(
-        meldung: Meldung(
-            meldungsart: Meldungsart.ERROR,
-            text: "Fehler beim Bearbeiten des Artikels: ${e.toString()}"),
-        context: context,
-      );
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+              meldungsart: Meldungsart.ERROR,
+              text: "Fehler beim Bearbeiten des Artikels: ${e.toString()}"),
+          context: context,
+        );
+      }
+
       return false;
     } finally {}
   }

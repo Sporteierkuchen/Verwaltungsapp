@@ -1,12 +1,8 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-
 import '../Klassen/Meldung.dart';
-import '../page/EditPage.dart';
-import '../page/MengenPage.dart';
 import '../util/HelperUtil.dart';
 import 'Bestätigung.dart';
 
@@ -328,23 +324,29 @@ class _MengeWidgetState extends State<MengeWidget> {
       });
 
       print("Menge erfolgreich gelöscht!");
-      HelperUtil.getToast(
+      if (mounted) {
+        HelperUtil.getToast(
           meldung: Meldung(
               meldungsart: Meldungsart.SUCCESS,
               text:
               "Menge erfolgreich gelöscht!"),
           context: context,
         );
+      }
 
     } catch (e) {
       print("Fehler beim Löschen der Menge: $e");
-      HelperUtil.getToast(
-        meldung: Meldung(
-            meldungsart: Meldungsart.ERROR,
-            text:
-            "Fehler beim Löschen der Menge: ${e.toString()}"),
-        context: context,
-      );
+
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+              meldungsart: Meldungsart.ERROR,
+              text:
+              "Fehler beim Löschen der Menge: ${e.toString()}"),
+          context: context,
+        );
+      }
+
     }
   }
 
