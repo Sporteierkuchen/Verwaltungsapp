@@ -15,9 +15,14 @@ class MengenPage extends StatefulWidget {
 }
 
 class _MengenPageState extends State<MengenPage> {
+
+  bool hasPopped = false;
+
   bool loadedData = true;
 
-  final mengeTextController = TextEditingController();
+  late TextEditingController mengeTextController;
+  late FocusNode _focusNode;
+
   DateTime? datum;
 
   String errorMessage = "";
@@ -27,18 +32,23 @@ class _MengenPageState extends State<MengenPage> {
     super.initState();
     print("Init State Mengen-Page");
 
+    mengeTextController= TextEditingController();
+    _focusNode = FocusNode();
     mengeTextController.text = "0";
   }
 
   @override
   dispose() {
-    print("Disposed Mengen-Page");
+   // print("Disposed Mengen-Page");
+
+    mengeTextController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    print("Build Mengen-Page");
+   // print("Build Mengen-Page");
 
     return PopScope(
       canPop: loadedData ? true : false,
@@ -75,15 +85,19 @@ class _MengenPageState extends State<MengenPage> {
                 DocumentSnapshot<Object?>? article;
 
                 // Prüfen, ob das Dokument existiert
-                if (!snapshot.hasData || !snapshot.data!.exists) {
-                  print("Artikel wurde gelöscht!");
+                if (snapshot.data != null &&  !snapshot.data!.exists) {
 
-                  // Navigator.pop aufrufen, wenn das Dokument nicht existiert
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (Navigator.canPop(context)) {
-                      Navigator.pop(context);
-                    }
-                  });
+                  print("Mengen-Page: Artikel wurde gelöscht!");
+
+                  if (!hasPopped && mounted) {
+                    hasPopped = true; // Verhindert mehrfaches `pop()`
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      }
+                    });
+                  }
+
                 } else {
                   article = snapshot.data;
                 }
@@ -290,6 +304,7 @@ class _MengenPageState extends State<MengenPage> {
                                       height: 40,
                                       child: TextField(
                                         controller: mengeTextController,
+                                        focusNode: _focusNode,
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(
                                             color: Colors.black,

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../Klassen/Meldung.dart';
+import '../page/EntnehmenPage.dart';
 import '../util/HelperUtil.dart';
 import 'Bestätigung.dart';
 
@@ -30,20 +31,20 @@ class _MengeWidgetState extends State<MengeWidget> {
   void initState() {
     super.initState();
 
-    print("Init State Menge-Widget");
+    // print("Init State Menge-Widget");
 
   }
 
   @override
   void dispose() {
     super.dispose();
-    print("Disposed Menge-Widget");
+   // print("Disposed Menge-Widget");
   }
 
   @override
   Widget build(BuildContext context) {
 
-    print("Build Menge-Widget");
+   // print("Build Menge-Widget");
 
     return
       Slidable(
@@ -105,14 +106,16 @@ class _MengeWidgetState extends State<MengeWidget> {
       child: GestureDetector(
         onTap: () {
           if (loadedData) {
-            // print("Ausgewählte Menge: Anzahl: ${widget.selectedArticle.mengenListe![index].menge} Datum: ${widget.selectedArticle.mengenListe![index].datum}");
-            //
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (context) => EntnehmenPage(selectedArticle: widget.selectedArticle, selectedMenge: widget.selectedArticle.mengenListe![index]),
-            //   ),
-            // ).then((value) => setState(() {}));
+
+            print("Ausgewählte Menge: Anzahl: ${widget.menge["menge"]} Datum: ${HelperUtil.formatDateTime((widget.menge["datum"] as Timestamp).toDate())}");
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EntnehmenPage(articleId: widget.articleId, mengeId: widget.menge.id),
+              ),
+            );
+
           }
         },
         child: Card(
@@ -227,7 +230,7 @@ class _MengeWidgetState extends State<MengeWidget> {
                                   child: Text(
                                     HelperUtil.formatDateTime((widget.menge["datum"]
                                     as Timestamp)
-                                        .toDate()),
+                                        .toDate().toLocal()),
                                     style:
                                     const TextStyle(
                                       height:

@@ -32,20 +32,20 @@ class _ArticleWidgetState extends State<ArticleWidget> {
   void initState() {
     super.initState();
 
-    print("Init State Article-Widget");
+    // print("Init State Article-Widget");
 
   }
 
   @override
   void dispose() {
     super.dispose();
-    print("Disposed Article-Widget");
+   // print("Disposed Article-Widget");
   }
 
   @override
   Widget build(BuildContext context) {
 
-    print("Build Article-Widget");
+   // print("Build Article-Widget");
 
         return
 
