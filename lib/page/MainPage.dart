@@ -239,6 +239,7 @@ class _MainPageState extends State<MainPage> {
                         StreamBuilder<QuerySnapshot>(
                           stream: FirebaseFirestore.instance.
                           collection('Article').
+                          orderBy("name").
                           snapshots(),// Echtzeit-Stream für Benutzer-Dokument
 
                           builder: (context, snapshot) {
@@ -254,23 +255,27 @@ class _MainPageState extends State<MainPage> {
                               );
                             }
                             if (snapshot.connectionState == ConnectionState.waiting) {
-                            return  Container(
-                                color: Colors.white,
-                                alignment: Alignment.center,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(20.0),
-                                      child: LoadingAnimationWidget.progressiveDots(
-                                        color: const Color(0xFF7B1A33),
-                                        size: 100,
+
+                            }
+
+                            if (snapshot.data == null) {
+                              return  Container(
+                                  color: Colors.white,
+                                  alignment: Alignment.center,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(20.0),
+                                        child: LoadingAnimationWidget.progressiveDots(
+                                          color: const Color(0xFF7B1A33),
+                                          size: 100,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              );
+                                    ],
+                                  ),
+                                );
                             }
 
                             // Filter articles by the search query

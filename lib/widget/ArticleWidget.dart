@@ -167,6 +167,7 @@ class _ArticleWidgetState extends State<ArticleWidget> {
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
+
                         Container(
                           padding: const EdgeInsets.all(
                               2), // Border width
@@ -191,9 +192,11 @@ class _ArticleWidgetState extends State<ArticleWidget> {
                             ),
                           ),
                         ),
+
                         const SizedBox(
                           width: 10,
                         ),
+
                         Expanded(
                           child: Padding(
                             padding:
@@ -253,57 +256,49 @@ class _ArticleWidgetState extends State<ArticleWidget> {
                             ),
                           ),
                         ),
-                        // Padding(
-                        //   padding: const EdgeInsets.symmetric(
-                        //       horizontal: 5),
-                        //   child: Column(children: [
-                        //     articleListSearch[index]
-                        //         .mengenListe!
-                        //         .isEmpty
-                        //         ? const Icon(
-                        //       Icons.star,
-                        //       color: Colors.black,
-                        //       size: 40,
-                        //     )
-                        //         : Container(),
-                        //     articleListSearch[index]
-                        //         .mengenListe!
-                        //         .isNotEmpty &&
-                        //         isOKMenge(
-                        //             articleListSearch[
-                        //             index])
-                        //         ? const Icon(
-                        //       Icons.check,
-                        //       color: Colors.green,
-                        //       size: 40,
-                        //     )
-                        //         : Container(),
-                        //     articleListSearch[index]
-                        //         .mengenListe!
-                        //         .isNotEmpty &&
-                        //         isWarningMenge(
-                        //             articleListSearch[
-                        //             index])
-                        //         ? const Icon(
-                        //       Icons.warning,
-                        //       color: Colors.orange,
-                        //       size: 40,
-                        //     )
-                        //         : Container(),
-                        //     articleListSearch[index]
-                        //         .mengenListe!
-                        //         .isNotEmpty &&
-                        //         isAbgelaufenMenge(
-                        //             articleListSearch[
-                        //             index])
-                        //         ? const Icon(
-                        //       Icons.error,
-                        //       color: Colors.red,
-                        //       size: 40,
-                        //     )
-                        //         : Container(),
-                        //   ]),
-                        // ),
+
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('Menge') // Name der Collection
+                              .where('artikelId', isEqualTo: widget.article.id)
+                              .orderBy("datum", descending: true)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasError) {
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text('Error: ${snapshot.error}',
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.red)),
+                              );
+                            }
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              // return const SizedBox.shrink();
+                            }
+
+                            if (snapshot.data == null) {
+                              return const SizedBox.shrink();
+                            }
+
+                            List<QueryDocumentSnapshot<Object?>> mengen =
+                                snapshot.data!.docs;
+
+                            return
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5),
+                                child:
+                                Column(
+                                    children: getColorWidget(mengen, widget.article['warnzeit'])
+                                ),
+                              );
+
+                          },
+                        ),
+
                       ],
                     ),
                   )),
@@ -359,6 +354,91 @@ class _ArticleWidgetState extends State<ArticleWidget> {
       print("Fehler beim Löschen des Artikels: $e");
     }
 
+  }
+
+  List<Widget> getColorWidget(List<QueryDocumentSnapshot<Object?>> mengen, int warnzeit) {
+
+    bool ok= false;
+    bool warning = false;
+    bool abgelaufen = false;
+
+    List<Widget> colorWidgets = [];
+
+    try {
+
+      if(mengen.isEmpty){
+          colorWidgets.add(
+              const Icon(
+                  Icons.star,
+                  color: Colors.black,
+                  size: 40,
+                )
+          );
+          return colorWidgets;
+      }
+
+      for (DocumentSnapshot menge in mengen) {
+
+        if (ok && warning && abgelaufen) {
+          return colorWidgets;
+        }
+
+        DateTime mengeDatum = (menge["datum"] as Timestamp).toDate();
+
+        int differenceDates = HelperUtil.getDifferenceDates(
+            mengeDatum.toString());
+
+        if (differenceDates >= 0 && differenceDates > warnzeit &&
+            warnzeit != -1) {
+          if (!ok) {
+            colorWidgets.add(
+                const Icon(
+                  Icons.check,
+                  color: Colors.green,
+                  size: 40,
+                )
+            );
+            ok = true;
+          }
+        } else if (differenceDates >= 0 && differenceDates <= warnzeit &&
+            warnzeit != -1) {
+          if (!warning) {
+            colorWidgets.add(
+                const Icon(
+                  Icons.warning,
+                  color: Colors.orange,
+                  size: 40,
+                )
+            );
+            warning = true;
+          }
+        } else if (differenceDates < 0) {
+          if (!abgelaufen) {
+            colorWidgets.add(
+                const Icon(
+                  Icons.error,
+                  color: Colors.red,
+                  size: 40,
+                )
+            );
+            abgelaufen = true;
+          }
+        }
+
+      }
+
+    } catch (e) {
+      print("Fehler beim Ermitteln der Color-Widgets: $e");
+      HelperUtil.getToast(
+        meldung: Meldung(
+            meldungsart: Meldungsart.ERROR,
+            text:
+            "Fehler beim Ermitteln der Color-Widgets: ${e.toString()}"),
+        context: context,
+      );
+    }
+
+    return colorWidgets;
   }
 
 }
