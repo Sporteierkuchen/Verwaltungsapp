@@ -1,11 +1,7 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:verwaltungsapp/dto/ArticleDTO.dart';
 import '../Klassen/Meldung.dart';
-import '../dto/MengeDTO.dart';
 import '../util/HelperUtil.dart';
-import '../util/LiveApiRequest.dart';
 
 class EntnehmenPage extends StatefulWidget {
 
@@ -82,13 +78,13 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
                     );
                   }
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SizedBox.shrink();
+                   // return const SizedBox.shrink();
                   }
 
                   DocumentSnapshot<Object?>? article;
 
                   // Prüfen, ob das Dokument existiert
-                  if (!snapshot.hasData || !snapshot.data!.exists) {
+                  if (snapshot.data != null &&  !snapshot.data!.exists) {
 
                     print("Artikel wurde gelöscht!");
 
@@ -157,7 +153,8 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
                               child:
 
                               article != null
-                                  ? Text(
+                                  ?
+                              Text(
                                 article["name"],
                                 softWrap: true,
                                 //maxLines: 1,
@@ -511,12 +508,9 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
 
                                           if(checkUserInputEntnehmen(menge!["menge"])){
 
-                                            // if(widget.selectedMenge.menge == int.parse(entnehmenTextController.text)){
-                                            //   await deleteMenge(widget.selectedMenge);
-                                            // }
-                                            // else{
-                                            //   await entnehmeMenge(widget.selectedMenge, widget.selectedMenge.menge - int.parse(entnehmenTextController.text.trim()));
-                                            // }
+                                            if(article != null){
+                                              await deleteOrUpdateMenge(int.parse(entnehmenTextController.text.trim()), menge["menge"], article["istmenge"]);
+                                            }
 
                                           }
                                           else{
@@ -530,9 +524,11 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
 
                                           }
 
-                                          setState(() {
-                                            loadedData = true;
-                                          });
+                                          if(mounted){
+                                            setState(() {
+                                              loadedData = true;
+                                            });
+                                          }
 
                                         }
 
@@ -571,7 +567,6 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
 
                         ),
                       ),
-
 
                       Padding(
                         padding: const EdgeInsets.all(10.0),
@@ -677,184 +672,57 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
 
   }
 
-  // entnehmeMenge(MengeDTO mDTO, int menge) async {
-  //
-  //   LiveApiRequest<MengeDTO> liveApiRequest = LiveApiRequest<MengeDTO>(
-  //       url: "https://artikelapp.000webhostapp.com/updateMenge.php");
-  //   ApiResponse apiResponse = await liveApiRequest.executePost({
-  //     "mengenID": mDTO.mengen_id.toString(),
-  //     "menge": menge.toString(),
-  //   });
-  //   if (apiResponse.status == Status.SUCCESS) {
-  //
-  //     print("Menge erfolgreich entnommen!");
-  //
-  //     mDTO.menge = menge ;
-  //
-  //     int ist = 0;
-  //     for (MengeDTO m in widget.selectedArticle.mengenListe!) {
-  //       ist += m.menge;
-  //     }
-  //     widget.selectedArticle.istmenge = ist;
-  //
-  //     entnehmenTextController.text = "0";
-  //     setState(() {
-  //     });
-  //
-  //
-  //   } else if (apiResponse.status == Status.EXCEPTION) {
-  //     print("Exception!");
-  //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-  //       duration: Duration(seconds: 3),
-  //       content: Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         mainAxisSize: MainAxisSize.max,
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Padding(
-  //             padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
-  //             child:
-  //             Icon(color: Colors.orange, size: 40, Icons.warning_outlined),
-  //           ),
-  //           Expanded(
-  //             child: Padding(
-  //               padding: EdgeInsets.all(5.0),
-  //               child: Text(
-  //                 "Server nicht erreichbar...\nPrüfe deine Internetverbindung!",
-  //                 softWrap: true,
-  //                 style: TextStyle(
-  //                   height: 0,
-  //                   fontWeight: FontWeight.bold,
-  //                   color: Colors.orange,
-  //                   fontSize: 16,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ));
-  //   } else if (apiResponse.status == Status.ERROR) {
-  //     print("Error!");
-  //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-  //       duration: Duration(seconds: 3),
-  //       content: Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         mainAxisSize: MainAxisSize.max,
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Padding(
-  //             padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
-  //             child: Icon(color: Colors.red, size: 40, Icons.error_outlined),
-  //           ),
-  //           Expanded(
-  //             child: Padding(
-  //               padding: EdgeInsets.all(5.0),
-  //               child: Text(
-  //                 "Es ist ein Serverfehler aufgetreten!",
-  //                 softWrap: true,
-  //                 style: TextStyle(
-  //                   height: 0,
-  //                   fontWeight: FontWeight.bold,
-  //                   color: Colors.red,
-  //                   fontSize: 16,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ));
-  //   }
-  //
-  // }
-  //
-  // deleteMenge(MengeDTO mengeDTO) async {
-  //
-  //   LiveApiRequest<MengeDTO> liveApiRequest = LiveApiRequest<MengeDTO>(
-  //       url: "https://artikelapp.000webhostapp.com/deleteMenge.php");
-  //   ApiResponse apiResponse = await liveApiRequest.executePost({
-  //     "mengenID": mengeDTO.mengen_id.toString(),
-  //   });
-  //   if (apiResponse.status == Status.SUCCESS) {
-  //
-  //     print("Menge erfolgreich gelöscht!");
-  //
-  //     widget.selectedArticle.mengenListe!.remove(mengeDTO);
-  //
-  //     int ist = 0;
-  //     for (MengeDTO m in widget.selectedArticle.mengenListe!) {
-  //       ist += m.menge;
-  //     }
-  //     widget.selectedArticle.istmenge = ist;
-  //
-  //     Navigator.pop(context);
-  //
-  //   } else if (apiResponse.status == Status.EXCEPTION) {
-  //     print("Exception!");
-  //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-  //       duration: Duration(seconds: 3),
-  //       content: Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         mainAxisSize: MainAxisSize.max,
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Padding(
-  //             padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
-  //             child:
-  //             Icon(color: Colors.orange, size: 40, Icons.warning_outlined),
-  //           ),
-  //           Expanded(
-  //             child: Padding(
-  //               padding: EdgeInsets.all(5.0),
-  //               child: Text(
-  //                 "Server nicht erreichbar...\nPrüfe deine Internetverbindung!",
-  //                 softWrap: true,
-  //                 style: TextStyle(
-  //                   height: 0,
-  //                   fontWeight: FontWeight.bold,
-  //                   color: Colors.orange,
-  //                   fontSize: 16,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ));
-  //   } else if (apiResponse.status == Status.ERROR) {
-  //     print("Error!");
-  //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-  //       duration: Duration(seconds: 3),
-  //       content: Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         mainAxisSize: MainAxisSize.max,
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Padding(
-  //             padding: EdgeInsets.only(left: 5, right: 15, top: 5, bottom: 5),
-  //             child: Icon(color: Colors.red, size: 40, Icons.error_outlined),
-  //           ),
-  //           Expanded(
-  //             child: Padding(
-  //               padding: EdgeInsets.all(5.0),
-  //               child: Text(
-  //                 "Es ist ein Serverfehler aufgetreten!",
-  //                 softWrap: true,
-  //                 style: TextStyle(
-  //                   height: 0,
-  //                   fontWeight: FontWeight.bold,
-  //                   color: Colors.red,
-  //                   fontSize: 16,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ));
-  //   }
-  // }
+  Future<void> deleteOrUpdateMenge(int anzahl, int mengenzahl, int articleIstMenge) async {
+
+    try {
+
+      if(mengenzahl > anzahl){
+        await FirebaseFirestore.instance
+            .collection("Menge")
+            .doc(widget.mengeId)
+            .update({
+          "menge": mengenzahl - anzahl,
+        });
+      }
+      else{
+        await FirebaseFirestore.instance
+            .collection("Menge")
+            .doc(widget.mengeId)
+            .delete();
+      }
+
+      await FirebaseFirestore.instance
+          .collection('Article')
+          .doc(widget.articleId)
+          .update({
+        'istmenge': articleIstMenge - anzahl,
+      });
+
+        print("Es wurden $anzahl Artikel entnommen!");
+        if (mounted) {
+          HelperUtil.getToast(
+            meldung: Meldung(
+                meldungsart: Meldungsart.SUCCESS,
+                text:
+                "Es wurden $anzahl Artikel entnommen!"),
+            context: context,
+          );
+        }
+
+    } catch (e) {
+      print("Fehler beim Entnehmen der Artikel: $e");
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+              meldungsart: Meldungsart.ERROR,
+              text:
+              "Fehler beim Entnehmen der Artikel: ${e.toString()}"),
+          context: context,
+        );
+      }
+
+    }
+  }
 
   Widget getColorWidget(DocumentSnapshot menge, int warnzeit) {
 

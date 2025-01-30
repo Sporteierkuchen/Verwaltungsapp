@@ -21,7 +21,6 @@ class _MengenPageState extends State<MengenPage> {
   bool loadedData = true;
 
   late TextEditingController mengeTextController;
-  late FocusNode _focusNode;
 
   DateTime? datum;
 
@@ -33,7 +32,6 @@ class _MengenPageState extends State<MengenPage> {
     print("Init State Mengen-Page");
 
     mengeTextController= TextEditingController();
-    _focusNode = FocusNode();
     mengeTextController.text = "0";
   }
 
@@ -42,7 +40,6 @@ class _MengenPageState extends State<MengenPage> {
    // print("Disposed Mengen-Page");
 
     mengeTextController.dispose();
-    _focusNode.dispose();
     super.dispose();
   }
 
@@ -61,451 +58,386 @@ class _MengenPageState extends State<MengenPage> {
                 MediaQuery.of(context).padding.top,
             child:
 
-            StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('Article')
-                  .doc(widget.articleId)
-                  .snapshots(),
-              builder: (context, snapshot) {
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
 
-                if (snapshot.hasError) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('Error: ${snapshot.error}',
-                        style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.normal,
-                            color: Colors.red)),
-                  );
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SizedBox.shrink();
-                }
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('Article')
+                      .doc(widget.articleId)
+                      .snapshots(),
+                  builder: (context, snapshot) {
 
-                DocumentSnapshot<Object?>? article;
+                    if (snapshot.hasError) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text('Error: ${snapshot.error}',
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.red)),
+                      );
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      // return const SizedBox.shrink();
+                    }
 
-                // Prüfen, ob das Dokument existiert
-                if (snapshot.data != null &&  !snapshot.data!.exists) {
+                    DocumentSnapshot<Object?>? article;
 
-                  print("Mengen-Page: Artikel wurde gelöscht!");
+                    // Prüfen, ob das Dokument existiert
+                    if (snapshot.data != null &&  !snapshot.data!.exists) {
 
-                  if (!hasPopped && mounted) {
-                    hasPopped = true; // Verhindert mehrfaches `pop()`
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (Navigator.canPop(context)) {
-                        Navigator.pop(context);
+                      print("Mengen-Page: Artikel wurde gelöscht!");
+
+                      if (!hasPopped && mounted) {
+                        hasPopped = true; // Verhindert mehrfaches `pop()`
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          }
+                        });
                       }
-                    });
-                  }
 
-                } else {
-                  article = snapshot.data;
-                }
+                    } else {
+                      article = snapshot.data;
+                    }
 
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                    return
 
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            flex: 4,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Container(
-                                  padding:
-                                      const EdgeInsets.all(2), // Border width
-                                  decoration: const BoxDecoration(
-                                      color: Colors.black,
-                                      shape: BoxShape.circle),
-                                  child: ClipOval(
-                                    child: SizedBox.fromSize(
-                                      size: const Size.fromRadius(
-                                          50), // Image radius
-                                      child: article != null
-                                          ? article["logopath"].isEmpty
-                                              ? Image.asset(
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                        
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 20),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    flex: 4,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Container(
+                                          padding:
+                                          const EdgeInsets.all(2), // Border width
+                                          decoration: const BoxDecoration(
+                                              color: Colors.black,
+                                              shape: BoxShape.circle),
+                                          child: ClipOval(
+                                            child: SizedBox.fromSize(
+                                              size: const Size.fromRadius(
+                                                  50), // Image radius
+                                              child: article != null
+                                                  ? article["logopath"].isEmpty
+                                                  ? Image.asset(
                                                   "lib/images/articles/empty.png",
                                                   fit: BoxFit.cover)
-                                              : Image.network(
-                                                  article["logopath"],
-                                                  fit: BoxFit.cover,
-
-                                                  gaplessPlayback: true,
-                                                  // filterQuality: FilterQuality.high,
-                                                  errorBuilder: (context, error,
-                                                      stackTrace) {
-                                                    // Leeres Bild oder alternative UI-Komponente im Fehlerfall anzeigen
-                                                    return Image.asset(
-                                                      "lib/images/articles/empty.png",
-                                                      fit: BoxFit.cover,
-                                                    );
-                                                  },
-                                                )
-                                          : Image.asset(
-                                              "lib/images/articles/empty.png",
-                                              fit: BoxFit.cover,
+                                                  : Image.network(
+                                                article["logopath"],
+                                                fit: BoxFit.cover,
+                        
+                                                gaplessPlayback: true,
+                                                // filterQuality: FilterQuality.high,
+                                                errorBuilder: (context, error,
+                                                    stackTrace) {
+                                                  // Leeres Bild oder alternative UI-Komponente im Fehlerfall anzeigen
+                                                  return Image.asset(
+                                                    "lib/images/articles/empty.png",
+                                                    fit: BoxFit.cover,
+                                                  );
+                                                },
+                                              )
+                                                  : Image.asset(
+                                                "lib/images/articles/empty.png",
+                                                fit: BoxFit.cover,
+                                              ),
                                             ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            flex: 6,
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: article != null
-                                  ? Text(
-                                      article["name"],
-                                      softWrap: true,
-                                      //maxLines: 1,
-                                      style: const TextStyle(
-                                        height: 0,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                        fontSize: 26,
-                                      ),
-                                    )
-                                  : const SizedBox.shrink(),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
-                        child: StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('Menge') // Name der Collection
-                              .where('artikelId',
-                                  isEqualTo:
-                                      widget.articleId) // Filter nach artikelId
-                              .orderBy("datum", descending: false)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError) {
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text('Error: ${snapshot.error}',
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.normal,
-                                        color: Colors.red)),
-                              );
-                            }
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const SizedBox.shrink();
-                            }
-
-                            List<QueryDocumentSnapshot<Object?>> mengen =
-                                snapshot.data!.docs;
-
-                            return mengen.isEmpty
-                                ? Container(
-                                    alignment: Alignment.center,
-                                    child: const Padding(
-                                        padding: EdgeInsets.all(20),
-                                        child: Text(
-                                          "Noch nichts hinzugefügt!",
-                                          style: TextStyle(
-                                            height: 0,
-                                            color: Colors.red,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 22,
-                                          ),
-                                        )),
-                                  )
-                                : SlidableAutoCloseBehavior(
-                                    closeWhenOpened: true,
-                                    child: ListView.builder(
-                                        //  shrinkWrap: true,
-                                        // physics: const ScrollPhysics(),
-                                        itemCount: mengen.length,
-                                        itemBuilder: (context, index) {
-                                          final menge = mengen[index];
-
-                                          return MengeWidget(
-                                              menge: menge,
-                                              warnzeit: article!["warnzeit"] as int,
-                                              articleId: widget.articleId);
-
-                                        }),
-                                  );
-                          },
-                        ),
-                      ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                      ),
-                      padding: const EdgeInsets.only(top: 15, bottom: 20),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Column(
-                            children: [
-                              const Text(
-                                "Anzahl",
-                                style: TextStyle(
-                                  height: 0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      if (loadedData) {
-                                        try {
-                                          int menge = int.parse(
-                                              mengeTextController.text);
-
-                                          if (menge < 0) {
-                                            mengeTextController.text = "0";
-                                          } else if (menge == 0) {
-                                          } else {
-                                            menge--;
-                                            mengeTextController.text =
-                                                menge.toString();
-                                          }
-                                        } catch (e) {
-                                          mengeTextController.text = "0";
-                                        }
-
-                                        setState(() {});
-                                      }
-                                    },
-                                    child: const Icon(
-                                      Icons.arrow_left,
-                                      color: Colors.black,
-                                      size: 40,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 3),
-                                    child: SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.12,
-                                      height: 40,
-                                      child: TextField(
-                                        controller: mengeTextController,
-                                        focusNode: _focusNode,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.normal),
-                                        textAlignVertical:
-                                            TextAlignVertical.center,
-                                        maxLength: 25,
-                                        decoration: const InputDecoration(
-                                          contentPadding: EdgeInsets.only(),
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                          counterText: "",
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(0.0)),
-                                            borderSide: BorderSide(
-                                                color: Colors.transparent,
-                                                width: 0.0),
-                                          ),
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(0.0)),
-                                            borderSide: BorderSide(
-                                                color: Colors.transparent,
-                                                width: 0.0),
                                           ),
                                         ),
-                                      ),
+                                      ],
                                     ),
                                   ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      if (loadedData) {
-                                        try {
-                                          int menge = int.parse(
-                                              mengeTextController.text);
-
-                                          if (menge < 0) {
-                                            mengeTextController.text = "0";
-                                          } else {
-                                            menge++;
-                                            mengeTextController.text =
-                                                menge.toString();
-                                          }
-                                        } catch (e) {
-                                          mengeTextController.text = "0";
-                                        }
-
-                                        setState(() {});
-                                      }
-                                    },
-                                    child: const Icon(
-                                      Icons.arrow_right,
-                                      color: Colors.black,
-                                      size: 40,
+                                  Expanded(
+                                    flex: 6,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 10),
+                                      child: article != null
+                                          ? Text(
+                                        article["name"],
+                                        softWrap: true,
+                                        //maxLines: 1,
+                                        style: const TextStyle(
+                                          height: 0,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontSize: 26,
+                                        ),
+                                      )
+                                          : const SizedBox.shrink(),
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              const Text(
-                                "Mindesthaltbarkeitsdatum",
-                                style: TextStyle(
-                                  height: 0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
-                                  fontSize: 16,
+                            ),
+                            
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 3),
+                                child: StreamBuilder<QuerySnapshot>(
+                                  stream: FirebaseFirestore.instance
+                                      .collection('Menge') // Name der Collection
+                                      .where('artikelId',
+                                      isEqualTo:
+                                      widget.articleId) // Filter nach artikelId
+                                      .orderBy("datum", descending: false)
+                                      .snapshots(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasError) {
+                                      return Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text('Error: ${snapshot.error}',
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.normal,
+                                                color: Colors.red)),
+                                      );
+                                    }
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                       // return const SizedBox.shrink();
+                                    }
+
+                                    if (snapshot.data == null) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    List<QueryDocumentSnapshot<Object?>> mengen =
+                                        snapshot.data!.docs;
+
+                                    return mengen.isEmpty
+                                        ? Container(
+                                      alignment: Alignment.center,
+                                      child: const Padding(
+                                          padding: EdgeInsets.all(20),
+                                          child: Text(
+                                            "Noch nichts hinzugefügt!",
+                                            style: TextStyle(
+                                              height: 0,
+                                              color: Colors.red,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 22,
+                                            ),
+                                          )),
+                                    )
+                                        : SlidableAutoCloseBehavior(
+                                      closeWhenOpened: true,
+                                      child: ListView.builder(
+                                         // shrinkWrap: true,
+                                        // physics: const ScrollPhysics(),
+                                          itemCount: mengen.length,
+                                          itemBuilder: (context, index) {
+                                            final menge = mengen[index];
+                                                      
+                                            return MengeWidget(
+                                                menge: menge,
+                                                warnzeit: article!["warnzeit"] as int,
+                                                articleId: widget.articleId);
+                                                      
+                                          }),
+                                    );
+                                  },
                                 ),
                               ),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  if (loadedData) {
-                                    DateTime? pickedDate = await showDatePicker(
-                                        context: context,
-                                        locale: const Locale("de", "DE"),
-                                        firstDate: DateTime(2000),
-                                        lastDate: DateTime(2050),
-                                        initialDate: DateTime.now());
+                            ),
+                        
+                          ],
+                        ),
+                      );
 
-                                    if (pickedDate != null) {
-                                      datum = pickedDate;
+                  },
+                ),
+
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                  ),
+                  padding: const EdgeInsets.only(top: 15, bottom: 20),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+
+                      Column(
+                        children: [
+                          const Text(
+                            "Anzahl",
+                            style: TextStyle(
+                              height: 0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  if (loadedData) {
+                                    try {
+                                      int menge = int.parse(
+                                          mengeTextController.text);
+
+                                      if (menge < 0) {
+                                        mengeTextController.text = "0";
+                                      } else if (menge == 0) {
+                                      } else {
+                                        menge--;
+                                        mengeTextController.text =
+                                            menge.toString();
+                                      }
+                                    } catch (e) {
+                                      mengeTextController.text = "0";
                                     }
 
                                     setState(() {});
                                   }
                                 },
-                                style: ElevatedButton.styleFrom(
-                                  foregroundColor: Colors.black,
-                                  backgroundColor: Colors.blue,
-                                  side: const BorderSide(
-                                      color: Colors.black, width: 1),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 5),
-
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(0),
-                                  ),
-                                  // Text Color (Foreground color)
+                                child: const Icon(
+                                  Icons.arrow_left,
+                                  color: Colors.black,
+                                  size: 40,
                                 ),
-                                child: datum != null
-                                    ? Text(
-                                        DateFormat('dd.MM.yyyy').format(datum!),
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Datum auswählen',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                        ),
+                              ),
+
+                              Padding(
+                                padding: const EdgeInsets.only(top: 3),
+                                child: SizedBox(
+                                  width: MediaQuery.of(context).size.width *
+                                      0.12,
+                                  height: 40,
+                                  child: TextField(
+                                    controller: mengeTextController,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.normal),
+                                    textAlignVertical:
+                                    TextAlignVertical.center,
+                                    maxLength: 25,
+                                    decoration: const InputDecoration(
+                                      contentPadding: EdgeInsets.only(),
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      counterText: "",
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(0.0)),
+                                        borderSide: BorderSide(
+                                            color: Colors.transparent,
+                                            width: 0.0),
                                       ),
-                              )
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(0.0)),
+                                        borderSide: BorderSide(
+                                            color: Colors.transparent,
+                                            width: 0.0),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+
+                              GestureDetector(
+                                onTap: () {
+                                  if (loadedData) {
+                                    try {
+                                      int menge = int.parse(
+                                          mengeTextController.text);
+
+                                      if (menge < 0) {
+                                        mengeTextController.text = "0";
+                                      } else {
+                                        menge++;
+                                        mengeTextController.text =
+                                            menge.toString();
+                                      }
+                                    } catch (e) {
+                                      mengeTextController.text = "0";
+                                    }
+
+                                    setState(() {});
+                                  }
+                                },
+                                child: const Icon(
+                                  Icons.arrow_right,
+                                  color: Colors.black,
+                                  size: 40,
+                                ),
+                              ),
                             ],
                           ),
                         ],
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+
+
+                      Column(
                         children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              if (loadedData) {
-                                print("Zurück!");
-
-                                mengeTextController.text = "0";
-                                datum = null;
-
-                                Navigator.pop(context);
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: Colors.red[300],
-                              side: const BorderSide(
-                                  color: Colors.black, width: 1),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              // Text Color (Foreground color)
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_outlined,
-                              size: 25,
-                              color: Colors.black,
+                          const Text(
+                            "Mindesthaltbarkeitsdatum",
+                            style: TextStyle(
+                              height: 0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                              fontSize: 16,
                             ),
                           ),
-
-                          // SizedBox(width: MediaQuery.of(context).size.width* 0.05),
-
                           ElevatedButton(
                             onPressed: () async {
                               if (loadedData) {
-                                setState(() {
-                                  loadedData = false;
-                                });
+                                DateTime? pickedDate = await showDatePicker(
+                                    context: context,
+                                    locale: const Locale("de", "DE"),
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2050),
+                                    initialDate: DateTime.now());
 
-                                if (checkUserInputMenge()) {
-                                  await addOrUpdateMenge(
-                                      datum!,
-                                      int.parse(
-                                          mengeTextController.text.trim()));
-                                } else {
-                                  print("Fehler Eingabe!");
-                                  HelperUtil.getToast(
-                                      meldung: Meldung(
-                                          meldungsart: Meldungsart.WARNING,
-                                          text: errorMessage),
-                                      context: context);
+                                if (pickedDate != null) {
+                                  datum = pickedDate;
                                 }
 
-                                setState(() {
-                                  loadedData = true;
-                                });
+                                setState(() {});
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: Colors.green[300],
+                              foregroundColor: Colors.black,
+                              backgroundColor: Colors.blue,
                               side: const BorderSide(
                                   color: Colors.black, width: 1),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
 
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(0),
                               ),
                               // Text Color (Foreground color)
                             ),
-                            child: const Text(
-                              'Hinzufügen',
+                            child: datum != null
+                                ? Text(
+                              DateFormat('dd.MM.yyyy').format(datum!),
+                              style: const TextStyle(
+                                fontSize: 18,
+                              ),
+                            )
+                                : const Text(
+                              'Datum auswählen',
                               style: TextStyle(
                                 fontSize: 18,
                               ),
@@ -513,11 +445,101 @@ class _MengenPageState extends State<MengenPage> {
                           )
                         ],
                       ),
-                    ),
-                  ],
-                );
-              },
+                    ],
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          if (loadedData) {
+                            print("Zurück!");
+
+                            mengeTextController.text = "0";
+                            datum = null;
+
+                            Navigator.pop(context);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.red[300],
+                          side: const BorderSide(
+                              color: Colors.black, width: 1),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          // Text Color (Foreground color)
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_outlined,
+                          size: 25,
+                          color: Colors.black,
+                        ),
+                      ),
+
+                      // SizedBox(width: MediaQuery.of(context).size.width* 0.05),
+
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (loadedData) {
+                            setState(() {
+                              loadedData = false;
+                            });
+
+                            if (checkUserInputMenge()) {
+                              await addOrUpdateMenge(
+                                  datum!,
+                                  int.parse(
+                                      mengeTextController.text.trim()));
+                            } else {
+                              print("Fehler Eingabe!");
+                              HelperUtil.getToast(
+                                  meldung: Meldung(
+                                      meldungsart: Meldungsart.WARNING,
+                                      text: errorMessage),
+                                  context: context);
+                            }
+
+                            setState(() {
+                              loadedData = true;
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.green[300],
+                          side: const BorderSide(
+                              color: Colors.black, width: 1),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          // Text Color (Foreground color)
+                        ),
+                        child: const Text(
+                          'Hinzufügen',
+                          style: TextStyle(
+                            fontSize: 18,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+
+              ],
             ),
+
           ),
         ),
       ),
