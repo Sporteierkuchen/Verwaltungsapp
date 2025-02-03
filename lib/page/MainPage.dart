@@ -76,7 +76,6 @@ class _MainPageState extends State<MainPage> {
                               textInputAction: TextInputAction.search,
                               onChanged: (value) {
                                 if (loadedData) {
-                                  // starteSuche(value);
 
                                   setState(() {
                                     searchQuery = value.toLowerCase().trim(); // Update search query
@@ -86,7 +85,6 @@ class _MainPageState extends State<MainPage> {
                               },
                               onSubmitted: (value) {
                                 if (loadedData) {
-                                  // starteSuche(value);
 
                                   setState(() {
                                     searchQuery = value.toLowerCase().trim(); // Update search query
@@ -110,7 +108,6 @@ class _MainPageState extends State<MainPage> {
                                 prefixIcon: GestureDetector(
                                   onTap: () {
                                     if (loadedData) {
-                                      // starteSuche(fieldText.text);
 
                                       setState(() {
                                         searchQuery = fieldText.text.toLowerCase().trim(); // Update search query
@@ -181,7 +178,9 @@ class _MainPageState extends State<MainPage> {
                                 onTap: () async {
                                   if (loadedData) {
 
-                                    loadedData = false;
+                                    setState(() {
+                                      loadedData = false;
+                                    });
 
                                     await  showDialog(
                                       barrierDismissible: false,
@@ -194,7 +193,6 @@ class _MainPageState extends State<MainPage> {
 
                                     setState(() {
                                       loadedData = true;
-                                     // refresh();
                                     });
 
                                   }
@@ -282,10 +280,16 @@ class _MainPageState extends State<MainPage> {
                             final filteredArticles = snapshot.data!.docs.where((doc) {
 
                               final name = doc['name'].toString().toLowerCase();
-                              return name.contains(searchQuery);
+
+                              if(filterList[0]){
+                                return name.contains(searchQuery);
+                              }
+                             else if(filterList[1]){
+                                return name.contains(searchQuery) && doc["istmenge"] < doc["sollmenge"];
+                              }
+                             return name.contains(searchQuery);
 
                             }).toList();
-
 
                             return
 
