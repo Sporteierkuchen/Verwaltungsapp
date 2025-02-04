@@ -2,10 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:verwaltungsapp/dto/ArticleDTO.dart';
 import 'package:verwaltungsapp/page/AddPage.dart';
 import 'package:verwaltungsapp/widget/ArticleWidget.dart';
-import '../dto/MengeDTO.dart';
+import '../util/HelperUtil.dart';
 import '../widget/FilterWidget.dart';
 
 class MainPage extends StatefulWidget {
@@ -19,8 +18,6 @@ class _MainPageState extends State<MainPage> {
   bool loadedData = true;
 
   List<bool> filterList = [true, false, false, false, false];
-
-  List<ArticleDTO> articleListSearch = <ArticleDTO>[];
 
   final fieldText = TextEditingController();
   String searchQuery = ""; // To filter articles by search
@@ -276,46 +273,83 @@ class _MainPageState extends State<MainPage> {
                                 );
                             }
 
-                            // Filter articles by the search query
-                            final filteredArticles = snapshot.data!.docs.where((doc) {
+
+                            final filteredArticlesWithName = snapshot.data!.docs.where((doc) {
 
                               final name = doc['name'].toString().toLowerCase();
-
-                              if(filterList[0]){
-                                return name.contains(searchQuery);
-                              }
-                             else if(filterList[1]){
-                                return name.contains(searchQuery) && doc["istmenge"] < doc["sollmenge"];
-                              }
-                             return name.contains(searchQuery);
+                              return name.contains(searchQuery);
 
                             }).toList();
 
                             return
 
-                               filteredArticles.isEmpty
+                              FutureBuilder<List<QueryDocumentSnapshot<Object?>>>(
+                                future: _filterArtikel(filteredArticlesWithName),
+                                builder: (context, filterSnapshot) {
 
-                                  ? const Padding(
-                                  padding: EdgeInsets.all(20),
-                                  child: Text(
-                                    "Keine Artikel vorhanden!",
-                                    style: TextStyle(
-                                      height: 0,
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 22,
-                                    ),
-                                  ))
-                                  : SlidableAutoCloseBehavior(
-                                closeWhenOpened: true,
-                                child: ListView.builder(
-                                    itemCount: filteredArticles.length,
-                                    itemBuilder: (context, index) {
+                                  if (filterSnapshot.hasError) {
+                                    return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text('Error: ${snapshot.error}',
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.normal,
+                                              color: Colors.red)),
+                                    );
+                                  }
+                                  if (filterSnapshot.connectionState == ConnectionState.waiting) {
+                                   // return const Center(child: CircularProgressIndicator());
+                                  }
+                                  if (filterSnapshot.data == null) {
+                                    return  Container(
+                                      color: Colors.white,
+                                      alignment: Alignment.center,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(20.0),
+                                            child: LoadingAnimationWidget.progressiveDots(
+                                              color: const Color(0xFF7B1A33),
+                                              size: 100,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
 
-                                      final article = filteredArticles[index];
-                                      return ArticleWidget(article: article);
+                                  List<QueryDocumentSnapshot<Object?>> gefilterteArtikel = filterSnapshot.data!;
 
-                                    }),
+                                  return
+
+                                    gefilterteArtikel.isEmpty
+
+                                      ? const Padding(
+                                      padding: EdgeInsets.all(20),
+                                      child: Text(
+                                        "Keine Artikel vorhanden!",
+                                        style: TextStyle(
+                                          height: 0,
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 22,
+                                        ),
+                                      ))
+                                      : SlidableAutoCloseBehavior(
+                                    closeWhenOpened: true,
+                                    child: ListView.builder(
+                                        itemCount: gefilterteArtikel.length,
+                                        itemBuilder: (context, index) {
+
+                                          final article = gefilterteArtikel[index];
+                                          return ArticleWidget(article: article);
+
+                                        }),
+                                  );
+
+                                },
                               );
 
                           },
@@ -335,65 +369,109 @@ class _MainPageState extends State<MainPage> {
 
   }
 
+  Future<List<QueryDocumentSnapshot<Object?>>> _filterArtikel(List<QueryDocumentSnapshot<Object?>> artikel)  async {
 
-  bool isOKMenge(ArticleDTO article) {
-    for (MengeDTO m in article.mengenListe!) {
-      DateTime now = DateTime.now();
-      DateTime datum = DateTime.parse(m.datum);
+    if (filterList[0]) {
+      return artikel; // Keine Filter anwenden -> Alle Artikel anzeigen
+    }
 
-      DateTime nowFormated = DateTime(now.year, now.month, now.day);
-      DateTime datumFormated = DateTime(datum.year, datum.month, datum.day);
+    List<QueryDocumentSnapshot<Object?>> gefilterteArtikel = [];
 
-      int difference =
-          (datumFormated.difference(nowFormated).inHours / 24).round();
-      // print("Difference: $difference Warnzeit: ${article.warnzeit}");
+    for (var doc in artikel) {
 
-      if (article.warnzeit < difference) {
-        return true;
+      var data = doc.data() as Map<String, dynamic>;
+      String artikelId = doc.id;
+      int istmenge = data["istmenge"];
+      int sollmenge = data["sollmenge"];
+      int warnzeit = data["warnzeit"];
+
+      bool addArtikel = true;
+
+      if (filterList[1] && istmenge >= sollmenge) {
+        addArtikel = false;
+      }
+
+      if (filterList[4] &&
+          !(await _hatAbgelaufeneMenge(artikelId))) {
+        addArtikel = false;
+      }
+
+      if (filterList[3] &&
+          !(await _hatMengeMitWarnzeit(artikelId, warnzeit))) {
+        addArtikel = false;
+      }
+
+      if (filterList[2] && !(await _hatMengeOk(artikelId, warnzeit))) {
+        addArtikel = false;
+      }
+
+      if (addArtikel) {
+        gefilterteArtikel.add(doc);
       }
     }
 
-    return false;
+    return gefilterteArtikel;
   }
 
-  bool isWarningMenge(ArticleDTO article) {
-    for (MengeDTO m in article.mengenListe!) {
-      DateTime now = DateTime.now();
-      DateTime datum = DateTime.parse(m.datum);
+  // 🔍 Prüft, ob ein Artikel eine Menge mit abgelaufenem Datum hat
+  Future<bool> _hatAbgelaufeneMenge(String artikelId) async {
 
-      DateTime nowFormated = DateTime(now.year, now.month, now.day);
-      DateTime datumFormated = DateTime(datum.year, datum.month, datum.day);
+    List<QueryDocumentSnapshot<Object?>> mengen = await _getMengenArtikel(artikelId);
 
-      int difference =
-          (datumFormated.difference(nowFormated).inHours / 24).round();
-      // print("Difference: $difference Warnzeit: ${article.warnzeit}");
+    return mengen.any((menge) {
 
-      if (difference >= 0 && article.warnzeit >= difference) {
-        return true;
-      }
-    }
+      var data = menge.data() as Map<String, dynamic>;
+      DateTime mengeDatum = (data["datum"] as Timestamp).toDate();
 
-    return false;
+      int differenceDates = HelperUtil.getDifferenceDates(mengeDatum.toString());
+      return differenceDates < 0;
+
+    });
+
   }
 
-  bool isAbgelaufenMenge(ArticleDTO article) {
-    for (MengeDTO m in article.mengenListe!) {
-      DateTime now = DateTime.now();
-      DateTime datum = DateTime.parse(m.datum);
+  // 🔍 Prüft, ob ein Artikel Mengen innerhalb/außerhalb der Warnzeit hat
+  Future<bool> _hatMengeMitWarnzeit(String artikelId, int warnzeit) async {
 
-      DateTime nowFormated = DateTime(now.year, now.month, now.day);
-      DateTime datumFormated = DateTime(datum.year, datum.month, datum.day);
+  List<QueryDocumentSnapshot<Object?>> mengen = await _getMengenArtikel(artikelId);
 
-      int difference =
-          (datumFormated.difference(nowFormated).inHours / 24).round();
-      // print("Difference: $difference Warnzeit: ${article.warnzeit}");
+  return mengen.any((menge) {
 
-      if (difference < 0) {
-        return true;
-      }
-    }
+  var data = menge.data() as Map<String, dynamic>;
+  DateTime mengeDatum = (data["datum"] as Timestamp).toDate();
+  int differenceDates = HelperUtil.getDifferenceDates(mengeDatum.toString());
 
-    return false;
+  return differenceDates >= 0 && differenceDates <= warnzeit && warnzeit != -1;
+
+  });
+
+  }
+
+  // 🔍 Prüft, ob ein Artikel Mengen innerhalb/außerhalb der Warnzeit hat
+  Future<bool> _hatMengeOk(String artikelId, int warnzeit) async {
+
+    List<QueryDocumentSnapshot<Object?>> mengen = await _getMengenArtikel(artikelId);
+
+    return mengen.any((menge) {
+
+      var data = menge.data() as Map<String, dynamic>;
+      DateTime mengeDatum = (data["datum"] as Timestamp).toDate();
+      int differenceDates = HelperUtil.getDifferenceDates(mengeDatum.toString());
+
+        return differenceDates >= 0 && differenceDates > warnzeit && warnzeit != -1;
+
+    });
+
+  }
+
+  // 🔥 Firebase-Abfrage für Mengen mit einer bestimmten artikelId
+  Future<List<QueryDocumentSnapshot<Object?>>> _getMengenArtikel(String artikelId) async {
+  QuerySnapshot snapshot = await FirebaseFirestore.instance
+      .collection("Menge")
+      .where("artikelId", isEqualTo: artikelId)
+      .get();
+
+  return snapshot.docs;
   }
 
 }
