@@ -307,53 +307,68 @@ class _ArticleWidgetState extends State<ArticleWidget> {
 
   }
 
-  deleteArticle(String articleId, String logopath) async {
-
+  Future<void> deleteArticle(String articleId, String logopath) async {
     try {
 
-      if(logopath.isNotEmpty){
-
-        final storageRef = FirebaseStorage.instance.refFromURL(logopath);
-        await storageRef.delete();
-
+      //1. Bild aus Firebase Storage löschen (Fehler ignorieren, falls nicht vorhanden)
+      if (logopath.isNotEmpty) {
+        try {
+          final storageRef = FirebaseStorage.instance.refFromURL(logopath);
+          await storageRef.delete();
+        } catch (e) {
+          print("Bild konnte nicht gelöscht werden (möglicherweise nicht vorhanden): $e");
+        }
       }
 
-      // Abfrage: Hole alle Mengen mit der spezifischen Artikel-ID
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection("Menge") // Name der Sammlung
+      final articleRef = FirebaseFirestore.instance.collection("Article").doc(articleId);
+
+      // Mengen-Dokumente abrufen
+      final mengeQuery = await FirebaseFirestore.instance
+          .collection("Menge")
           .where("artikelId", isEqualTo: articleId)
           .get();
 
-      // Iteriere über die Ergebnisse und lösche jedes Dokument
-      for (var doc in querySnapshot.docs) {
-        await doc.reference.delete();
-      }
+      //2. Alles in einer Transaktion ausführen
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
 
-      DocumentReference articleDoc = FirebaseFirestore.instance.collection('Article').doc(articleId);
-      await articleDoc.delete();
+        final articleSnap = await transaction.get(articleRef);
 
+        // Mengen-Dokumente in der Transaktion löschen (falls vorhanden)
+        for (var doc in mengeQuery.docs) {
+          transaction.delete(doc.reference);
+        }
+
+        // Prüfen, ob Artikel existiert, bevor er gelöscht wird
+        if (articleSnap.exists) {
+          transaction.delete(articleRef);
+        }
+
+      });
+
+      // Erfolgsmeldung
       if (mounted) {
         HelperUtil.getToast(
           meldung: Meldung(
-              meldungsart: Meldungsart.SUCCESS,
-              text: "Der Artikel wurde gelöscht!"),
+            meldungsart: Meldungsart.SUCCESS,
+            text: "Der Artikel wurde gelöscht!",
+          ),
           context: context,
         );
       }
 
     } catch (e) {
+      print("Fehler beim Löschen des Artikels: $e");
+
       if (mounted) {
         HelperUtil.getToast(
           meldung: Meldung(
-              meldungsart: Meldungsart.ERROR,
-              text: "Fehler beim Löschen des Artikels!"),
+            meldungsart: Meldungsart.ERROR,
+            text: "Fehler beim Löschen des Artikels!",
+          ),
           context: context,
         );
       }
-
-      print("Fehler beim Löschen des Artikels: $e");
     }
-
   }
 
   List<Widget> getColorWidget(List<QueryDocumentSnapshot<Object?>> mengen, int warnzeit) {

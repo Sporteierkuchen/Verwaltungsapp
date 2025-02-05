@@ -576,86 +576,82 @@ class _MengenPageState extends State<MengenPage> {
     }
   }
 
-  /// Funktion zum Hinzufügen oder Aktualisieren einer Menge
   Future<void> addOrUpdateMenge(DateTime datum, int anzahl) async {
     try {
-      final query = await FirebaseFirestore.instance
-          .collection("Menge")
+
+      final artikelRef = FirebaseFirestore.instance.collection("Article").doc(widget.articleId);
+      final mengeCollection = FirebaseFirestore.instance.collection("Menge");
+
+      // ✅ Query vor der Transaktion ausführen (Firestore erlaubt keine Queries in Transaktionen)
+      final mengeQuery = await mengeCollection
           .where('artikelId', isEqualTo: widget.articleId)
-          .where("datum",
-              isEqualTo: Timestamp.fromDate(
-                  DateTime(datum.year, datum.month, datum.day)))
+          .where("datum", isEqualTo: Timestamp.fromDate(DateTime(datum.year, datum.month, datum.day)))
+          .limit(1)
           .get();
 
-      if (query.docs.isNotEmpty) {
-        // Dokument mit diesem Datum existiert -> Anzahl aktualisieren
-        final doc = query.docs.first;
-        final currentAnzahl = doc["menge"] as int;
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
 
-        await FirebaseFirestore.instance
-            .collection("Menge")
-            .doc(doc.id)
-            .update({
-          "menge": currentAnzahl + anzahl,
-        });
-
-        print("Vorhandene Menge aktualisiert.");
-        if (mounted) {
-          HelperUtil.getToast(
-            meldung: Meldung(
-                meldungsart: Meldungsart.SUCCESS,
-                text:
-                "Menge erfolgreich aktualisiert und Anzahl $anzahl hinzugefügt."),
-            context: context,
-          );
+        final artikelSnap = await transaction.get(artikelRef);
+        if (!artikelSnap.exists) {
+          throw Exception("Artikel nicht gefunden!");
         }
 
-      } else {
-        // Neues Dokument hinzufügen
-        await FirebaseFirestore.instance.collection("Menge").add({
-          "artikelId": widget.articleId,
-          "datum":
-              Timestamp.fromDate(DateTime(datum.year, datum.month, datum.day)),
-          "menge": anzahl,
-        });
+        if (mengeQuery.docs.isNotEmpty) {
 
-        print("Neue Menge hinzugefügt.");
-        if (mounted) {
-          HelperUtil.getToast(
-            meldung: Meldung(
-                meldungsart: Meldungsart.SUCCESS,
-                text: "Neue Menge hinzugefügt mit Anzahl $anzahl."),
-            context: context,
-          );
+          final mengeDoc = mengeQuery.docs.first;
+          final mengeRef = FirebaseFirestore.instance.collection("Menge").doc(mengeDoc.id);
+
+          transaction.update(mengeRef, {"menge": FieldValue.increment(anzahl)});
+
+          print("Bestehende Menge aktualisiert: +$anzahl");
+          if (mounted) {
+            HelperUtil.getToast(
+              meldung: Meldung(
+                  meldungsart: Meldungsart.SUCCESS,
+                  text:
+                  "Menge erfolgreich aktualisiert und Anzahl $anzahl hinzugefügt."),
+              context: context,
+            );
+          }
+
+        } else {
+
+          final neueMengeRef = FirebaseFirestore.instance.collection("Menge").doc();
+          transaction.set(neueMengeRef, {
+            "artikelId": widget.articleId,
+            "datum": Timestamp.fromDate(DateTime(datum.year, datum.month, datum.day)),
+            "menge": anzahl,
+          });
+
+          print("Neue Menge hinzugefügt mit Anzahl: $anzahl");
+          if (mounted) {
+            HelperUtil.getToast(
+              meldung: Meldung(
+                  meldungsart: Meldungsart.SUCCESS,
+                  text: "Neue Menge hinzugefügt mit Anzahl $anzahl."),
+              context: context,
+            );
+          }
+
         }
 
-      }
+        transaction.update(artikelRef, {"istmenge": FieldValue.increment(anzahl)});
 
-      final article = await FirebaseFirestore.instance
-          .collection("Article")
-          .doc(widget.articleId)
-          .get();
-
-      int artikelAnzahl = article["istmenge"] as int;
-
-      await FirebaseFirestore.instance
-          .collection('Article')
-          .doc(widget.articleId)
-          .update({
-        'istmenge': artikelAnzahl + anzahl,
       });
-    } catch (e) {
-      print("Fehler beim Hinzufügen/Aktualisieren der Menge: $e");
+
+    } catch (e, stackTrace) {
+
+      print("Fehler beim Hinzufügen/Aktualisieren der Menge: $e\n$stackTrace");
+
       if (mounted) {
         HelperUtil.getToast(
           meldung: Meldung(
-              meldungsart: Meldungsart.ERROR,
-              text:
-              "Fehler beim Hinzufügen/Aktualisieren der Menge: ${e.toString()}"),
+            meldungsart: Meldungsart.ERROR,
+            text: "Fehler beim Hinzufügen/Aktualisieren der Menge: ${e.toString()}",
+          ),
           context: context,
         );
       }
-
     }
   }
 

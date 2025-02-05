@@ -673,54 +673,52 @@ class _EntnehmenPageState extends State<EntnehmenPage> {
   }
 
   Future<void> deleteOrUpdateMenge(int anzahl, int mengenzahl, int articleIstMenge) async {
-
     try {
+      final mengeRef = FirebaseFirestore.instance.collection("Menge").doc(widget.mengeId);
+      final artikelRef = FirebaseFirestore.instance.collection("Article").doc(widget.articleId);
 
-      if(mengenzahl > anzahl){
-        await FirebaseFirestore.instance
-            .collection("Menge")
-            .doc(widget.mengeId)
-            .update({
-          "menge": mengenzahl - anzahl,
-        });
-      }
-      else{
-        await FirebaseFirestore.instance
-            .collection("Menge")
-            .doc(widget.mengeId)
-            .delete();
-      }
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
 
-      await FirebaseFirestore.instance
-          .collection('Article')
-          .doc(widget.articleId)
-          .update({
-        'istmenge': articleIstMenge - anzahl,
-      });
+        final mengeSnap = await transaction.get(mengeRef);
+        final artikelSnap = await transaction.get(artikelRef);
 
-        print("Es wurden $anzahl Artikel entnommen!");
-        if (mounted) {
-          HelperUtil.getToast(
-            meldung: Meldung(
-                meldungsart: Meldungsart.SUCCESS,
-                text:
-                "Es wurden $anzahl Artikel entnommen!"),
-            context: context,
-          );
+        if (!mengeSnap.exists) {
+          throw Exception("Menge nicht gefunden!");
+        }
+        if (!artikelSnap.exists) {
+          throw Exception("Artikel nicht gefunden!");
         }
 
+        if (mengenzahl > anzahl) {
+          transaction.update(mengeRef, {"menge": mengenzahl - anzahl});
+        } else {
+          transaction.delete(mengeRef);
+        }
+
+        transaction.update(artikelRef, {"istmenge": articleIstMenge - anzahl});
+      });
+
+      print("Es wurden $anzahl Artikel entnommen!");
+      if (mounted) {
+        HelperUtil.getToast(
+          meldung: Meldung(
+            meldungsart: Meldungsart.SUCCESS,
+            text: "Es wurden $anzahl Artikel entnommen!",
+          ),
+          context: context,
+        );
+      }
     } catch (e) {
       print("Fehler beim Entnehmen der Artikel: $e");
       if (mounted) {
         HelperUtil.getToast(
           meldung: Meldung(
-              meldungsart: Meldungsart.ERROR,
-              text:
-              "Fehler beim Entnehmen der Artikel: ${e.toString()}"),
+            meldungsart: Meldungsart.ERROR,
+            text: "Fehler beim Entnehmen der Artikel: ${e.toString()}",
+          ),
           context: context,
         );
       }
-
     }
   }
 

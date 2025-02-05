@@ -273,7 +273,6 @@ class _MainPageState extends State<MainPage> {
                                 );
                             }
 
-
                             final filteredArticlesWithName = snapshot.data!.docs.where((doc) {
 
                               final name = doc['name'].toString().toLowerCase();

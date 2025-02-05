@@ -1,4 +1,6 @@
 
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -310,20 +312,40 @@ class _MengeWidgetState extends State<MengeWidget> {
 
     try {
 
-      await FirebaseFirestore.instance.collection("Menge").doc(menge.id).delete();
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
 
-      final article = await FirebaseFirestore.instance
-          .collection("Article")
-          .doc(widget.articleId)
-          .get();
+        DocumentReference artikelRef = FirebaseFirestore.instance.collection("Article").doc(widget.articleId);
+        DocumentReference mengeRef = FirebaseFirestore.instance.collection("Menge").doc(menge.id);
 
-      int artikelAnzahl = article["istmenge"] as int;
+        //Artikel lesen
+        DocumentSnapshot artikelSnap = await transaction.get(artikelRef);
+        if (!artikelSnap.exists) {
+          throw Exception("Artikel nicht gefunden!");
+        }
 
-      await FirebaseFirestore.instance
-          .collection('Article')
-          .doc(widget.articleId)
-          .update({
-        'istmenge': artikelAnzahl - menge["menge"] as int,
+        //Menge lesen
+        DocumentSnapshot mengeSnap = await transaction.get(mengeRef);
+        if (!mengeSnap.exists) {
+          print("Menge existiert nicht mehr, wird übersprungen.");
+          return;
+        }
+
+        //Werte abrufen und neue Istmenge berechnen
+        int istMenge = (artikelSnap["istmenge"] ?? 0) as int;
+        int mengeWert = (mengeSnap["menge"] ?? 0) as int;
+
+        if (mengeWert <= 0) {
+          throw ArgumentError("Ungültige Menge: $mengeWert");
+        }
+
+        int neueIstMenge = max(0, istMenge - mengeWert);
+
+        //Istmenge im Artikel aktualisieren
+        transaction.update(artikelRef, {"istmenge": neueIstMenge});
+
+        //Menge löschen (erst wenn alles oben sicher ist)
+        transaction.delete(mengeRef);
+
       });
 
       print("Menge erfolgreich gelöscht!");
@@ -337,19 +359,18 @@ class _MengeWidgetState extends State<MengeWidget> {
         );
       }
 
-    } catch (e) {
-      print("Fehler beim Löschen der Menge: $e");
+    } catch (e, stackTrace) {
+      print("Fehler beim Löschen der Menge: $e\n$stackTrace");
 
       if (mounted) {
         HelperUtil.getToast(
           meldung: Meldung(
-              meldungsart: Meldungsart.ERROR,
-              text:
-              "Fehler beim Löschen der Menge: ${e.toString()}"),
+            meldungsart: Meldungsart.ERROR,
+            text: "Fehler beim Löschen der Menge: ${e.toString()}",
+          ),
           context: context,
         );
       }
-
     }
   }
 
